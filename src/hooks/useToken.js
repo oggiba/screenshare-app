@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { getDeviceId } from "./useDeviceId";
 
 export function useToken() {
   const [token, setToken] = useState(null);
@@ -14,7 +15,13 @@ export function useToken() {
       const res = await fetch("/.netlify/functions/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomName, participantName }),
+        body: JSON.stringify({
+          roomName,
+          participantName,
+          // Identidade técnica deste navegador — resolvida aqui para que
+          // nenhum componente precise carregá-la manualmente.
+          deviceId: getDeviceId(),
+        }),
       });
 
       const data = await res.json();

@@ -1,0 +1,185 @@
+import { useState, useEffect } from "react";
+import {
+  useLocalParticipant,
+  useRoomContext,
+  useConnectionQualityIndicator,
+} from "@livekit/components-react";
+import { ConnectionQuality } from "livekit-client";
+
+/** Indicador de qualidade de conexão (ping visual) */
+function QualityPip() {
+  const { localParticipant } = useLocalParticipant();
+  const { quality } = useConnectionQualityIndicator({ participant: localParticipant });
+  const [ping, setPing] = useState(null);
+
+  // Coleta RTT real das estatísticas WebRTC.
+  // Usa qualquer track publicada (mic ou tela) — se nenhuma estiver ativa,
+  // cai no indicador qualitativo do LiveKit.
+  useEffect(() => {
+    let alive = true;
+
+    const measure = async () => {
+      try {
+        const pubs = Array.from(localParticipant.trackPublications.values());
+        for (const pub of pubs) {
+          const stats = await pub.track?.getRTCStatsReport?.();
+          if (!stats) continue;
+          let found = null;
+          stats.forEach((report) => {
+            if (
+              report.type === "candidate-pair" &&
+              report.state === "succeeded" &&
+              report.currentRoundTripTime != null
+            ) {
+              found = Math.round(report.currentRoundTripTime * 1000);
+            }
+          });
+          if (found != null && alive) {
+            setPing(found);
+            return;
+          }
+        }
+        if (alive) setPing(null);
+      } catch {
+        /* silencioso — stats não são críticas */
+      }
+    };
+
+    measure();
+    const interval = setInterval(measure, 3000);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, [localParticipant]);
+
+  const label = {
+    [ConnectionQuality.Excellent]: { text: "Ótima", cls: "q-good" },
+    [ConnectionQuality.Good]: { text: "Boa", cls: "q-ok" },
+    [ConnectionQuality.Poor]: { text: "Ruim", cls: "q-bad" },
+    [ConnectionQuality.Lost]: { text: "Perdida", cls: "q-bad" },
+  }[quality] || { text: "—", cls: "q-ok" };
+
+  return (
+    <div className={`quality-pip ${label.cls}`} title="Qualidade da conexão">
+      <span className="q-dot" />
+      <span className="q-text">{ping != null ? `${ping}ms` : label.text}</span>
+    </div>
+  );
+}
+
+export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave, quality }) {
+  const { localParticipant } = useLocalParticipant();
+  const room = useRoomContext();
+
+  const [micOn, setMicOn] = useState(false);
+  const [screenOn, setScreenOn] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Sincroniza estado local com o estado real das tracks
+  useEffect(() => {
+    const sync = () => {
+      setMicOn(localParticipant.isMicrophoneEnabled);
+      setScreenOn(localParticipant.isScreenShareEnabled);
+    };
+    sync();
+    room.on("localTrackPublished", sync);
+    room.on("localTrackUnpublished", sync);
+    room.on("trackMuted", sync);
+    room.on("trackUnmuted", sync);
+    return () => {
+      room.off("localTrackPublished", sync);
+      room.off("localTrackUnpublished", sync);
+      room.off("trackMuted", sync);
+      room.off("trackUnmuted", sync);
+    };
+  }, [room, localParticipant]);
+
+  const toggleMic = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await localParticipant.setMicrophoneEnabled(!micOn);
+      setMicOn(!micOn);
+    } catch (err) {
+      console.error("Erro no microfone:", err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleScreen = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      // Resolução e bitrate vêm do preset escolhido nas configurações.
+      // Manter os dois casados é o que evita imagem borrada.
+      await localParticipant.setScreenShareEnabled(
+        !screenOn,
+        quality.captureOptions(),
+        quality.publishOptions()
+      );
+      setScreenOn(!screenOn);
+    } catch (err) {
+      // Usuário cancelou o seletor de tela — não é erro real
+      if (err?.name !== "NotAllowedError") console.error("Erro no screenshare:", err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="control-dock">
+      <QualityPip />
+
+      <div className="stream-quality-tag" title={quality.current.hint}>
+        {quality.current.detail}
+      </div>
+
+      <div className="dock-buttons">
+        {/* Microfone */}
+        <button
+          className={`dock-btn ${micOn ? "active" : "off"}`}
+          onClick={toggleMic}
+          disabled={busy}
+          title={micOn ? "Desligar microfone" : "Ligar microfone"}
+        >
+          {micOn ? "🎙️" : "🔇"}
+          <span>{micOn ? "Mic ligado" : "Mic mudo"}</span>
+        </button>
+
+        {/* Ensurdecer (mutar tudo) */}
+        <button
+          className={`dock-btn ${deafened ? "off" : "active"}`}
+          onClick={onToggleDeafen}
+          title={deafened ? "Reativar todo o áudio" : "Mutar todo o áudio da sala"}
+        >
+          {deafened ? "🔕" : "🔊"}
+          <span>{deafened ? "Áudio mudo" : "Áudio ligado"}</span>
+        </button>
+
+        {/* Compartilhar tela */}
+        <button
+          className={`dock-btn screen ${screenOn ? "sharing" : ""}`}
+          onClick={toggleScreen}
+          disabled={busy}
+          title={screenOn ? "Parar de compartilhar" : "Compartilhar tela"}
+        >
+          {screenOn ? "⏹️" : "🖥️"}
+          <span>{screenOn ? "Parar transmissão" : "Compartilhar tela"}</span>
+        </button>
+
+        {/* Configurações */}
+        <button className="dock-btn subtle" onClick={onOpenSettings} title="Configurações de áudio">
+          ⚙️
+        </button>
+
+        {/* Sair */}
+        <button className="dock-btn danger" onClick={onLeave} title="Sair da sala">
+          📴
+          <span>Sair</span>
+        </button>
+      </div>
+    </div>
+  );
+}

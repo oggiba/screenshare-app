@@ -3,28 +3,33 @@ import { Home } from "./pages/Home";
 import { Room } from "./pages/Room";
 import "./App.css";
 
-export default function App() {
-  const [session, setSession] = useState(null); // { roomId, participantName }
+/** Sanitiza o ID vindo da URL */
+function cleanRoomId(raw) {
+  if (!raw) return null;
+  const clean = raw.replace(/[^a-zA-Z0-9\-_]/g, "").slice(0, 64);
+  return clean || null;
+}
 
-  // Suporte a link direto: shareroom.netlify.app/?room=abc123
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [invitedRoom, setInvitedRoom] = useState(null);
+
+  // Lê ?room= da URL na primeira carga
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const roomFromUrl = params.get("room");
-    if (roomFromUrl) {
-      // Salva o roomId para pré-preencher no formulário
-      window.__pendingRoom = roomFromUrl.replace(/[^a-zA-Z0-9\-_]/g, "").slice(0, 64);
-    }
+    setInvitedRoom(cleanRoomId(params.get("room")));
   }, []);
 
   const handleJoin = (roomId, participantName) => {
     setSession({ roomId, participantName });
-    // Atualiza a URL para facilitar compartilhamento
-    window.history.pushState({}, "", `?room=${roomId}`);
+    // Mantém o link compartilhável na barra de endereço
+    window.history.replaceState({}, "", `?room=${roomId}`);
   };
 
   const handleLeave = () => {
     setSession(null);
-    window.history.pushState({}, "", "/");
+    setInvitedRoom(null);
+    window.history.replaceState({}, "", "/");
   };
 
   if (session) {
@@ -37,5 +42,5 @@ export default function App() {
     );
   }
 
-  return <Home onJoin={handleJoin} />;
+  return <Home onJoin={handleJoin} invitedRoom={invitedRoom} />;
 }

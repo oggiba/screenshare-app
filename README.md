@@ -186,20 +186,114 @@ O `netlify.toml` já configura headers de segurança automáticos:
 
 ---
 
+## ⚡ Otimizando o ping (leia isto)
+
+### 1 — Região do projeto LiveKit (maior impacto de todos)
+
+Este é **o fator número um** de latência. Se o seu projeto LiveKit estiver em região errada, todo o tráfego atravessa o oceano.
+
+No dashboard do LiveKit Cloud, verifique a região do projeto:
+
+| Sua localização | Região ideal | Ping esperado |
+|---|---|---|
+| Brasil | São Paulo (`sa-east`) | 10–40ms |
+| Brasil → região US | US East | 110–160ms |
+| Brasil → região EU | Europa | 180–250ms |
+
+O LiveKit Cloud roteia automaticamente para o edge mais próximo na maioria dos casos, mas vale confirmar nas configurações do projeto. **Trocar de US para São Paulo pode cortar 100ms+ de latência.**
+
+### 2 — Otimizações já aplicadas no código
+
+| Técnica | O que faz |
+|---|---|
+| `adaptiveStream` | Ajusta a resolução recebida ao tamanho real do elemento na tela |
+| `dynacast` | Para de enviar camadas de vídeo que ninguém está assistindo |
+| `simulcast` | Envia várias qualidades — cada um recebe a que sua rede aguenta |
+| `dtx` | Não transmite pacotes durante silêncio |
+| `red` | Redundância de áudio — sobrevive a perda de pacotes |
+| `contentHint: motion` | Prioriza fluidez sobre nitidez no screenshare |
+| Deafen real | Ao mutar tudo, o servidor **para de enviar** áudio (economiza banda) |
+| Code splitting | SDK do LiveKit fica em cache entre deploys |
+
+### 3 — Do lado do usuário
+
+- Cabo de rede sempre ganha de Wi-Fi
+- Fones de ouvido evitam eco e cancelamento agressivo
+- Menos telas simultâneas = menos CPU consumida na decodificação
+- Feche abas pesadas antes de transmitir
+
+---
+
+## 🎛️ Funcionalidades
+
+- **Entrada por link** — cria a sala, copia o link, o amigo abre e só digita o nome
+- **Múltiplas telas simultâneas** — vários podem transmitir ao mesmo tempo
+- **Modo foco** — duplo clique numa tela para expandi-la
+- **Controle de microfone** — liga/desliga com um clique
+- **Botão de mutar tudo (deafen)** — silencia a sala inteira
+- **Volume individual** — clique num participante para ajustar (0–200%)
+- **Seleção de dispositivos** — escolha qual microfone e saída de áudio usar
+- **Indicador de ping** — RTT real em tempo real na barra inferior
+- **Indicador de quem está falando** — avatar pulsa em verde
+- **Nome salvo** — não precisa digitar toda vez
+- **Volume lembrado por amigo** — silenciou alguém? continua silenciado semana que vem
+- **Apelidos locais privados** — dê o nome que quiser a cada amigo, só você vê
+
+---
+
+## 🆔 Identidade: como funciona (e o que NÃO é)
+
+Cada navegador gera um **ID técnico** (`sr_device_id`) no primeiro acesso, salvo no localStorage. Ele serve para:
+
+- Manter suas preferências (volume, apelidos) ligadas à pessoa certa, mesmo que ela mude de nome
+- Ser a chave de identidade dentro da sala
+
+### ⚠️ Isto NÃO é autenticação
+
+O ID fica no navegador do usuário e pode ser trocado por qualquer um que abra o DevTools. Ele **não prova quem a pessoa é** — serve só para conveniência local.
+
+A segurança real deste app continua sendo **o link ser secreto**. Nada além disso.
+
+### Consequências práticas
+
+| Situação | O que acontece |
+|---|---|
+| Mesmo navegador, duas abas, mesma sala | A primeira aba é desconectada (LiveKit exige identity única por sala) |
+| Limpar dados do navegador | Vira "pessoa nova" — volumes e apelidos se perdem |
+| Aba anônima | ID temporário, não persiste ao fechar |
+| Trocar de nome | Volume e apelido salvos continuam funcionando |
+
+### Três camadas de nome
+
+```
+identity  → UUID do navegador     (técnico, nunca aparece na tela)
+name      → apelido escolhido      (o que a pessoa digitou)
+nickname  → apelido local privado  (só você vê, sobrepõe o name)
+```
+
+---
+
 ## 📁 Estrutura do projeto
 
 ```
 screenshare-app/
 ├── netlify/
 │   └── functions/
-│       └── token.js          # Backend: gera tokens JWT (seguro)
+│       └── token.cjs         # Backend: gera tokens JWT (seguro)
 ├── src/
+│   ├── components/
+│   │   ├── ControlDock.jsx     # Barra inferior (mic, deafen, tela, ping)
+│   │   ├── ParticipantList.jsx # Sidebar com volume individual
+│   │   └── SettingsModal.jsx   # Seleção de microfone e saída
 │   ├── hooks/
-│   │   └── useToken.js       # Hook que chama a Function
+│   │   ├── useToken.js       # Busca token na Netlify Function
+│   │   ├── useDeviceId.js    # ID técnico estável do navegador
+│   │   ├── useFriendPrefs.js # Volumes e apelidos salvos por amigo
+│   │   └── useDevices.js     # Lista e persiste dispositivos de áudio
 │   ├── pages/
-│   │   ├── Home.jsx          # Tela inicial (criar/entrar em sala)
-│   │   └── Room.jsx          # Tela da sala de transmissão
-│   ├── App.jsx               # Roteamento
+│   │   ├── Home.jsx          # Entrada (cria sala ou aceita convite)
+│   │   └── Room.jsx          # Sala + config de performance do LiveKit
+│   ├── App.jsx               # Roteamento por ?room=
 │   ├── App.css               # Estilos
 │   └── main.jsx              # Entry point
 ├── .env.example              # Template de variáveis (sem valores reais)

@@ -1,12 +1,26 @@
 const { AccessToken } = require("livekit-server-sdk");
 
+/** Nome de exibição: permite acentos e espaços, remove controles e tags */
+function sanitizeName(raw) {
+  if (typeof raw !== "string") return "";
+  return raw
+    .normalize("NFC")
+    .replace(/[\u0000-\u001F\u007F<>]/g, "") // controles e sinais de tag
+    .trim()
+    .slice(0, 24);
+}
+
+/** Sala e deviceId: alfanumérico estrito */
+function sanitizeSlug(raw, max) {
+  if (typeof raw !== "string") return "";
+  return raw.replace(/[^a-zA-Z0-9\-_]/g, "").slice(0, max);
+}
+
 exports.handler = async (event) => {
-  // Só aceita POST
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
-  // Lê variáveis de ambiente — NUNCA expostas ao frontend
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
 
@@ -25,47 +39,48 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Body inválido." }) };
   }
 
-  const { roomName, participantName } = body;
+  const safeRoom = sanitizeSlug(body.roomName, 64);
+  const safeName = sanitizeName(body.participantName);
+  const safeDeviceId = sanitizeSlug(body.deviceId, 64);
 
-  // Validações básicas
-  if (!roomName || typeof roomName !== "string" || roomName.trim().length === 0) {
-    return { statusCode: 400, body: JSON.stringify({ error: "roomName é obrigatório." }) };
+  if (!safeRoom) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Sala inválida." }) };
   }
-  if (!participantName || typeof participantName !== "string" || participantName.trim().length === 0) {
-    return { statusCode: 400, body: JSON.stringify({ error: "participantName é obrigatório." }) };
+  if (!safeName) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: "Nome inválido. Use letras, números ou espaços." }),
+    };
   }
-
-  // Sanitiza inputs — só letras, números, hífens, underscores e espaços
-  const safeName = participantName.trim().slice(0, 32).replace(/[^a-zA-Z0-9\-_ ]/g, "");
-  const safeRoom = roomName.trim().slice(0, 64).replace(/[^a-zA-Z0-9\-_]/g, "");
-
-  if (!safeRoom || !safeName) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Nome inválido. Use apenas letras, números e hífens." }) };
+  if (!safeDeviceId || safeDeviceId.length < 8) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Identificador de dispositivo inválido." }) };
   }
 
   try {
     const at = new AccessToken(apiKey, apiSecret, {
-      identity: safeName,
-      ttl: "4h", // Token expira em 4 horas
+      // identity: chave técnica estável do navegador — única por sala.
+      // Nunca é exibida na interface.
+      identity: safeDeviceId,
+      // name: apelido que o participante escolheu — este sim aparece na tela.
+      name: safeName,
+      ttl: "4h",
     });
 
     at.addGrant({
       roomJoin: true,
       room: safeRoom,
-      canPublish: true,        // Pode transmitir tela/áudio
-      canSubscribe: true,      // Pode assistir outros
-      canPublishData: true,    // Mensagens de chat básicas
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+      // Permite atualizar o próprio nome de exibição sem reconectar
+      canUpdateOwnMetadata: true,
     });
 
     const token = await at.toJwt();
 
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        // Segurança: evita que o browser cache tokens
-        "Cache-Control": "no-store",
-      },
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
       body: JSON.stringify({ token }),
     };
   } catch (err) {
