@@ -1176,6 +1176,11 @@ button { font-family: var(--font); }
   font-size: 0.88rem;
 }
 
+.error-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .error-screen button {
   padding: 10px 26px;
   background: var(--accent);
@@ -1184,6 +1189,12 @@ button { font-family: var(--font); }
   color: white;
   font-weight: 600;
   cursor: pointer;
+}
+
+.error-screen button.ghost {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
 }
 
 /* =========================================

@@ -33,12 +33,23 @@ export function useAudioDevices() {
 
   const pickMic = useCallback((deviceId) => {
     setSelectedMic(deviceId);
-    localStorage.setItem("sr_mic", deviceId);
+    // Sem o try/catch, um storage cheio ou bloqueado (modo privado do
+    // Safari, por exemplo) interrompe a função aqui e o resto do fluxo
+    // de troca de microfone (switchActiveDevice) nunca chega a rodar.
+    try {
+      localStorage.setItem("sr_mic", deviceId);
+    } catch {
+      /* preferência vale só nesta sessão */
+    }
   }, []);
 
   const pickSpeaker = useCallback((deviceId) => {
     setSelectedSpeaker(deviceId);
-    localStorage.setItem("sr_speaker", deviceId);
+    try {
+      localStorage.setItem("sr_speaker", deviceId);
+    } catch {
+      /* preferência vale só nesta sessão */
+    }
   }, []);
 
   return { mics, speakers, selectedMic, selectedSpeaker, pickMic, pickSpeaker, refresh };

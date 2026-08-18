@@ -14,6 +14,7 @@ import { Stage } from "../components/Stage";
 import { ControlDock } from "../components/ControlDock";
 import { ParticipantList } from "../components/ParticipantList";
 import { SettingsModal } from "../components/SettingsModal";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import "@livekit/components-styles";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
@@ -36,33 +37,58 @@ function RoomContent({ roomId, onLeave }) {
     onlySubscribed: true,
   });
 
-  /** Aplica um volume nas tracks de áudio de um participante remoto */
+  /**
+   * Aplica um volume nas tracks de áudio de um participante remoto.
+   *
+   * setVolume() mexe direto num GainNode do Web Audio API por baixo do
+   * pano. Se o AudioContext do navegador estiver suspenso ou fechado —
+   * o que acontece de forma legítima ao voltar de um diálogo de
+   * permissão, aba em segundo plano, ou políticas de autoplay — essa
+   * chamada lança uma exceção que nem o SDK do LiveKit nem o React
+   * capturam sozinhos. Sem o try/catch aqui, um erro assim dentro do
+   * useEffect abaixo derruba a sala inteira. Nunca deixe este método
+   * propagar uma exceção.
+   */
   const applyVolume = useCallback((participant, percent) => {
     if (!participant?.setVolume || participant.isLocal) return;
-    const v = percent / 100;
-    participant.setVolume(v, Track.Source.Microphone);
-    participant.setVolume(v, Track.Source.ScreenShareAudio);
+    try {
+      const v = percent / 100;
+      participant.setVolume(v, Track.Source.Microphone);
+      participant.setVolume(v, Track.Source.ScreenShareAudio);
+    } catch (err) {
+      console.error("Falha ao ajustar volume (ignorada):", err);
+    }
   }, []);
 
   // Reaplica volumes salvos sempre que a lista de participantes muda.
   // Sem isto, um amigo que você silenciou semana passada entraria em 100%.
   // O LiveKit guarda o valor no volumeMap mesmo se a track de áudio ainda
   // não chegou, e aplica sozinho no momento da inscrição.
+  //
+  // Depende de "participantKey" (identidades unidas), não do array
+  // "participants" bruto — useParticipants() retorna uma referência nova
+  // a cada render, o que faria este efeito rodar (e reaplicar volume em
+  // todo mundo) a cada pixel arrastado no slider, multiplicando o risco
+  // de bater numa falha do Web Audio API sem necessidade.
+  const participantKey = participants.map((p) => p.identity).join(",");
   useEffect(() => {
     participants.forEach((p) => {
       if (p.isLocal) return;
       const saved = volumes[p.identity];
       if (saved != null && saved !== 100) applyVolume(p, saved);
     });
-  }, [participants, volumes, applyVolume]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participantKey, volumes, applyVolume]);
 
   // Guarda o nome atual de cada amigo para reconhecê-lo se voltar com outro.
   // Roda depois da leitura acima para não competir pelo mesmo render.
+  // Mesma lógica de estabilidade de dependência do efeito anterior.
   useEffect(() => {
     participants.forEach((p) => {
       if (!p.isLocal && p.name) remember(p.identity, p.name);
     });
-  }, [participants, remember]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participantKey, remember]);
 
   const handleVolumeChange = useCallback(
     (deviceId, value) => {
@@ -223,18 +249,20 @@ export function Room({ roomId, participantName, onLeave }) {
   if (!token) return null;
 
   return (
-    <LiveKitRoom
-      token={token}
-      serverUrl={LIVEKIT_URL}
-      connect={true}
-      video={false}
-      audio={false}
-      options={roomOptions}
-      onDisconnected={onLeave}
-      data-lk-theme="default"
-      style={{ height: "100dvh" }}
-    >
-      <RoomContent roomId={roomId} onLeave={onLeave} />
-    </LiveKitRoom>
+    <ErrorBoundary onReset={onLeave}>
+      <LiveKitRoom
+        token={token}
+        serverUrl={LIVEKIT_URL}
+        connect={true}
+        video={false}
+        audio={false}
+        options={roomOptions}
+        onDisconnected={onLeave}
+        data-lk-theme="default"
+        style={{ height: "100dvh" }}
+      >
+        <RoomContent roomId={roomId} onLeave={onLeave} />
+      </LiveKitRoom>
+    </ErrorBoundary>
   );
 }

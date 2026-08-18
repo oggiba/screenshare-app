@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Home } from "./pages/Home";
 import { Room } from "./pages/Room";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./App.css";
 
 /** Sanitiza o ID vindo da URL */
@@ -32,15 +33,19 @@ export default function App() {
     window.history.replaceState({}, "", "/");
   };
 
-  if (session) {
-    return (
-      <Room
-        roomId={session.roomId}
-        participantName={session.participantName}
-        onLeave={handleLeave}
-      />
-    );
-  }
-
-  return <Home onJoin={handleJoin} invitedRoom={invitedRoom} />;
+  // Fronteira de nível raiz: cobre também a tela inicial (Home).
+  // Room já tem sua própria fronteira interna, mais específica.
+  return (
+    <ErrorBoundary onReset={handleLeave}>
+      {session ? (
+        <Room
+          roomId={session.roomId}
+          participantName={session.participantName}
+          onLeave={handleLeave}
+        />
+      ) : (
+        <Home onJoin={handleJoin} invitedRoom={invitedRoom} />
+      )}
+    </ErrorBoundary>
+  );
 }

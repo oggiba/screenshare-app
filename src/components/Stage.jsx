@@ -85,8 +85,16 @@ export function Stage({ screenTracks, participants, displayName }) {
     setFocusedSid(trackRef.publication.trackSid);
     const el = stageRef.current;
     if (!el) return;
-    if (document.fullscreenElement) document.exitFullscreen?.();
-    else el.requestFullscreen?.().catch(() => {});
+    // Ambos os lados da API de tela cheia retornam Promise e podem
+    // rejeitar (gesto do usuário expirado, navegador bloqueando, estado
+    // já mudou). .catch(() => {}) evita rejeição não tratada no console
+    // e, mais importante, garante que um clique duplo malsucedido nunca
+    // deixa a UI presa a meio caminho.
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => {});
+    } else {
+      el.requestFullscreen?.().catch(() => {});
+    }
   }, []);
 
   const handleSelect = useCallback(

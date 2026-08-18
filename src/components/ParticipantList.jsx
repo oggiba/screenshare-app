@@ -5,6 +5,18 @@ import {
   useIsSpeaking,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
+import { ErrorBoundary } from "./ErrorBoundary";
+
+function RowFallback({ name }) {
+  return (
+    <div className="participant-row">
+      <div className="participant-main">
+        <div className="avatar">?</div>
+        <span className="participant-name">{name || "Participante"}</span>
+      </div>
+    </div>
+  );
+}
 
 function ParticipantRow({
   participant,
@@ -148,18 +160,22 @@ export function ParticipantList({
 
       <div className="participant-scroll">
         {participants.map((p) => (
-          <ParticipantRow
-            key={p.identity}
-            participant={p}
-            isLocal={p.identity === localParticipant.identity}
-            volume={volumes[p.identity] ?? 100}
-            onVolumeChange={onVolumeChange}
-            nickname={nicknames[p.identity]}
-            onNicknameChange={onNicknameChange}
-            displayName={getDisplayName(p)}
-            previousName={getPreviousName(p)}
-            isKnown={getIsKnown(p)}
-          />
+          // Cada linha isolada numa fronteira própria: se algo quebrar
+          // ao renderizar UM participante específico, o resto da lista
+          // (e a sala inteira) continua de pé.
+          <ErrorBoundary key={p.identity} fallback={<RowFallback name={p.identity} />}>
+            <ParticipantRow
+              participant={p}
+              isLocal={p.identity === localParticipant.identity}
+              volume={volumes[p.identity] ?? 100}
+              onVolumeChange={onVolumeChange}
+              nickname={nicknames[p.identity]}
+              onNicknameChange={onNicknameChange}
+              displayName={getDisplayName(p)}
+              previousName={getPreviousName(p)}
+              isKnown={getIsKnown(p)}
+            />
+          </ErrorBoundary>
         ))}
       </div>
 

@@ -12,14 +12,25 @@ function generateRoomId() {
 }
 
 export function Home({ onJoin, invitedRoom }) {
-  const [name, setName] = useState(() => localStorage.getItem("sr_name") || "");
+  const [name, setName] = useState(() => {
+    try {
+      return localStorage.getItem("sr_name") || "";
+    } catch {
+      return ""; // storage bloqueado — segue sem nome pré-preenchido
+    }
+  });
   const [confirmed, setConfirmed] = useState(false);
 
   // Modo convite: chegou por link com ?room=
   const isInvite = Boolean(invitedRoom);
 
   useEffect(() => {
-    if (name) localStorage.setItem("sr_name", name);
+    if (!name) return;
+    try {
+      localStorage.setItem("sr_name", name);
+    } catch {
+      /* storage bloqueado — nome não fica salvo entre visitas, tudo bem */
+    }
   }, [name]);
 
   const handleSubmit = () => {
