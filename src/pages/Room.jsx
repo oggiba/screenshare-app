@@ -3,13 +3,14 @@ import {
   LiveKitRoom,
   RoomAudioRenderer,
   useTracks,
-  VideoTrack,
   useParticipants,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useToken } from "../hooks/useToken";
 import { usePersistedVolumes, useNicknames, useKnownNames } from "../hooks/useFriendPrefs";
 import { useStreamQuality } from "../hooks/useStreamQuality";
+import { copyText } from "../utils/clipboard";
+import { Stage } from "../components/Stage";
 import { ControlDock } from "../components/ControlDock";
 import { ParticipantList } from "../components/ParticipantList";
 import { SettingsModal } from "../components/SettingsModal";
@@ -17,40 +18,11 @@ import "@livekit/components-styles";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
-/** Tile de tela compartilhada com controles de foco */
-function ScreenTile({ trackRef, isFocused, onFocus, onUnfocus, label }) {
-  const [hovering, setHovering] = useState(false);
-
-  return (
-    <div
-      className={`screen-tile ${isFocused ? "focused" : ""}`}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-      onDoubleClick={() => (isFocused ? onUnfocus() : onFocus(trackRef))}
-    >
-      <VideoTrack trackRef={trackRef} className="screen-video" />
-
-      <div className={`tile-overlay ${hovering ? "visible" : ""}`}>
-        <span className="tile-name">🖥️ {label}</span>
-        <button
-          className="tile-focus-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            isFocused ? onUnfocus() : onFocus(trackRef);
-          }}
-        >
-          {isFocused ? "Sair do foco" : "Focar"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function RoomContent({ roomId, onLeave }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deafened, setDeafened] = useState(false);
-  const [focusedId, setFocusedId] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [showLink, setShowLink] = useState(false);
 
   const participants = useParticipants();
   const isLocalSharing = participants.some((p) => p.isLocal && p.isScreenShareEnabled);
@@ -105,24 +77,18 @@ function RoomContent({ roomId, onLeave }) {
   // os dados de áudio — economiza banda de verdade, não só silencia local.
   const toggleDeafen = useCallback(() => setDeafened((d) => !d), []);
 
-  const copyLink = () => {
-    const url = `${window.location.origin}/?room=${roomId}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const inviteUrl = `${window.location.origin}/?room=${roomId}`;
+
+  const copyLink = async () => {
+    const ok = await copyText(inviteUrl);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      // Cópia bloqueada pelo navegador — mostra o link para copiar à mão
+      setShowLink(true);
+    }
   };
-
-  const focused = useMemo(
-    () => screenTracks.find((t) => t.publication?.trackSid === focusedId),
-    [screenTracks, focusedId]
-  );
-
-  useEffect(() => {
-    if (focusedId && !focused) setFocusedId(null);
-  }, [focusedId, focused]);
-
-  const visibleTracks = focused ? [focused] : screenTracks;
-  const gridCount = Math.min(visibleTracks.length, 4);
 
   return (
     <div className="room-shell">
@@ -142,37 +108,20 @@ function RoomContent({ roomId, onLeave }) {
         <div className="topbar-warning">🔒 Envie o link apenas para amigos</div>
       </header>
 
+      {showLink && (
+        <div className="link-fallback">
+          <span>Seu navegador bloqueou a cópia automática. Copie o link à mão:</span>
+          <input readOnly value={inviteUrl} onFocus={(e) => e.target.select()} />
+          <button onClick={() => setShowLink(false)}>Fechar</button>
+        </div>
+      )}
+
       <div className="room-body">
-        <main className="stage">
-          {visibleTracks.length === 0 ? (
-            <div className="stage-empty">
-              <span className="empty-icon">🖥️</span>
-              <h3>Nenhuma tela sendo compartilhada</h3>
-              <p>
-                Clique em <strong>Compartilhar tela</strong> abaixo para começar.
-                <br />
-                Vários participantes podem transmitir ao mesmo tempo.
-              </p>
-              <div className="empty-tip">
-                💡 Marque <strong>"Compartilhar áudio da guia"</strong> no seletor do
-                navegador para transmitir o som junto.
-              </div>
-            </div>
-          ) : (
-            <div className={`stage-grid count-${gridCount}`}>
-              {visibleTracks.map((t) => (
-                <ScreenTile
-                  key={t.publication.trackSid}
-                  trackRef={t}
-                  label={displayName(t.participant)}
-                  isFocused={focusedId === t.publication.trackSid}
-                  onFocus={(ref) => setFocusedId(ref.publication.trackSid)}
-                  onUnfocus={() => setFocusedId(null)}
-                />
-              ))}
-            </div>
-          )}
-        </main>
+        <Stage
+          screenTracks={screenTracks}
+          participants={participants}
+          displayName={displayName}
+        />
 
         <ParticipantList
           volumes={volumes}
