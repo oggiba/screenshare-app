@@ -1034,6 +1034,20 @@ button { font-family: var(--font); }
 }
 
 
+.usage-pip {
+  padding: 5px 11px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: "Fira Code", monospace;
+  white-space: nowrap;
+  cursor: help;
+  flex-shrink: 0;
+}
+
 /* Tag de qualidade na dock */
 .stream-quality-tag {
   padding: 5px 11px;

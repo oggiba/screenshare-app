@@ -104,9 +104,10 @@ export function useStreamQuality() {
       videoEncoding: preset.encoding,
       screenShareEncoding: preset.encoding,
       degradationPreference: DEGRADATION_MODES[modeId].value,
-      // Screenshare não usa simulcast: as camadas extras custam CPU do
-      // transmissor sem ganho real quando todos assistem em tela cheia.
-      simulcast: false,
+      // Simulcast LIGADO: com grade e miniaturas, quem aparece pequeno
+      // recebe uma camada leve em vez do stream cheio. Numa sala com
+      // várias telas ao mesmo tempo isso corta a banda drasticamente.
+      simulcast: true,
     };
   }, [qualityId, modeId]);
 

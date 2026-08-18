@@ -6,6 +6,52 @@ import {
 } from "@livekit/components-react";
 import { ConnectionQuality } from "livekit-client";
 
+/**
+ * Consumo desta sessão.
+ * O plano gratuito do LiveKit corta o serviço ao estourar a cota mensal,
+ * então ver o gasto acontecendo evita a surpresa de a sala parar no meio.
+ */
+function UsagePip() {
+  const room = useRoomContext();
+  const [mb, setMb] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+
+    const tick = async () => {
+      try {
+        let bytes = 0;
+        for (const p of room.remoteParticipants.values()) {
+          for (const pub of p.trackPublications.values()) {
+            const stats = await pub.track?.getRTCStatsReport?.();
+            if (!stats) continue;
+            stats.forEach((r) => {
+              if (r.type === "inbound-rtp" && r.bytesReceived) bytes += r.bytesReceived;
+            });
+          }
+        }
+        if (alive && bytes > 0) setMb(bytes / 1_000_000);
+      } catch {
+        /* stats não são críticas */
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => { alive = false; clearInterval(id); };
+  }, [room]);
+
+  if (mb < 1) return null;
+
+  const label = mb >= 1000 ? `${(mb / 1000).toFixed(2)} GB` : `${Math.round(mb)} MB`;
+
+  return (
+    <div className="usage-pip" title="Dados recebidos nesta sessão — conta na cota mensal do LiveKit">
+      ↓ {label}
+    </div>
+  );
+}
+
 /** Indicador de qualidade de conexão (ping visual) */
 function QualityPip() {
   const { localParticipant } = useLocalParticipant();
@@ -131,6 +177,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
   return (
     <div className="control-dock">
       <QualityPip />
+      <UsagePip />
 
       <div className="stream-quality-tag" title={quality.current.hint}>
         {quality.current.detail}
