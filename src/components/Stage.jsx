@@ -101,6 +101,7 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
                 setShowBrightness((v) => !v);
               }}
               title="Ajustar brilho (só pra você)"
+              aria-label="Ajustar brilho, só pra você"
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -114,6 +115,7 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
                 onFullscreen(trackRef);
               }}
               title="Tela cheia"
+              aria-label="Tela cheia"
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -322,6 +324,7 @@ export function Stage({ screenTracks, participants, displayName }) {
             className="reveal-controls-btn"
             onClick={() => setControlsHidden(false)}
             title="Mostrar controles"
+            aria-label="Mostrar controles"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             whileHover={{ scale: 1.1 }}

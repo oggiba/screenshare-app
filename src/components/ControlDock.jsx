@@ -369,6 +369,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             onToggleTheme();
           }}
           title={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          aria-label={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
           whileHover={hover}
           whileTap={{ ...tap, rotate: 25 }}
         >
@@ -391,6 +392,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             onOpenSettings();
           }}
           title="Configurações de áudio"
+          aria-label="Abrir configurações"
           whileHover={{ ...hover, rotate: 40 }}
           whileTap={tap}
         >

@@ -204,7 +204,7 @@ export function ParticipantList({
           <span className="sidebar-title">Na sala</span>
           <div className="sidebar-header-right">
             <span className="participant-count">{participants.length}</span>
-            <button className="sidebar-close" onClick={onMobileClose} title="Fechar">
+            <button className="sidebar-close" onClick={onMobileClose} title="Fechar" aria-label="Fechar lista de participantes">
               <X size={18} />
             </button>
           </div>

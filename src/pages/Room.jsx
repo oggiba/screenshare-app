@@ -185,6 +185,7 @@ function RoomContent({ roomId, onLeave }) {
           className="topbar-people-btn"
           onClick={() => setParticipantsOpen(true)}
           title="Ver participantes"
+          aria-label={`Ver participantes (${participants.length} na sala)`}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
         >
