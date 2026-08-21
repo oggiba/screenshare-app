@@ -6,6 +6,7 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { ErrorBoundary } from "./ErrorBoundary";
+import "./ParticipantList.css";
 
 function RowFallback({ name }) {
   return (
