@@ -1,27 +1,24 @@
 import { useState, useCallback } from "react";
+import { readLocal, writeLocal } from "../utils/localStore";
 
 const VOLUMES_KEY = "sr_volumes";
 const NICKNAMES_KEY = "sr_nicknames";
 const KNOWN_KEY = "sr_known";
 
-/** Lê um objeto JSON do localStorage com segurança */
+// Limite de segurança contra crescimento sem fim num navegador usado por
+// muito tempo com muita gente diferente passando pelas salas — mantém
+// só as entradas mais recentes acima disso (ver writeLocal).
+const MAX_FRIEND_ENTRIES = 300;
+
+const isPlainObject = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+
+/** Lê um mapa { [deviceId]: valor } do localStorage, tolerando dado corrompido/antigo */
 function readMap(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
+  return readLocal(key, {}, isPlainObject);
 }
 
 function writeMap(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Cota estourada ou storage bloqueado — preferência vale só nesta sessão.
-  }
+  writeLocal(key, value, { maxMapEntries: MAX_FRIEND_ENTRIES });
 }
 
 /**

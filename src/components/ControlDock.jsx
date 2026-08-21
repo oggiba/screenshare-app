@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
@@ -143,6 +143,23 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
   const [cameraOn, setCameraOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [shareError, setShareError] = useState(null);
+  const shareErrorTimeoutRef = useRef(null);
+
+  // Substitui qualquer timeout de dispensa pendente por um novo, e limpa
+  // ao desmontar — sem isto, dois erros seguidos empilhavam timers, e um
+  // timer podia disparar setState depois do componente já ter saído
+  // (ex.: usuário sai da sala logo após uma falha de compartilhamento).
+  const showShareError = useCallback((message) => {
+    if (shareErrorTimeoutRef.current) clearTimeout(shareErrorTimeoutRef.current);
+    setShareError(message);
+    shareErrorTimeoutRef.current = setTimeout(() => setShareError(null), 5000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (shareErrorTimeoutRef.current) clearTimeout(shareErrorTimeoutRef.current);
+    };
+  }, []);
 
   // getDisplayMedia simplesmente não existe na maioria dos navegadores
   // mobile (Safari iOS sempre, Chrome Android em muitas versões) — sem
@@ -208,10 +225,9 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
 
     if (!screenOn && !screenShareSupported) {
       sounds?.click();
-      setShareError(
+      showShareError(
         "Este navegador não permite compartilhar tela. Tente o Chrome no computador, ou no Android use o Chrome mais recente."
       );
-      setTimeout(() => setShareError(null), 5000);
       return;
     }
 
@@ -248,8 +264,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
       // Usuário cancelou o seletor de tela — não é erro real
       if (err?.name !== "NotAllowedError") {
         console.error("Erro no screenshare:", err);
-        setShareError("Não foi possível iniciar o compartilhamento de tela.");
-        setTimeout(() => setShareError(null), 5000);
+        showShareError("Não foi possível iniciar o compartilhamento de tela.");
       }
     } finally {
       setBusy(false);

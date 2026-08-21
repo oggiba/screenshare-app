@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LiveKitRoom,
@@ -125,11 +125,19 @@ function RoomContent({ roomId, onLeave }) {
 
   const inviteUrl = `${window.location.origin}/?room=${roomId}`;
 
+  const copiedTimeoutRef = useRef(null);
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    };
+  }, []);
+
   const copyLink = async () => {
     const ok = await copyText(inviteUrl);
     if (ok) {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } else {
       // Cópia bloqueada pelo navegador — mostra o link para copiar à mão
       setShowLink(true);
