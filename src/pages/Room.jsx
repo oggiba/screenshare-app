@@ -12,12 +12,14 @@ import { useToken } from "../hooks/useToken";
 import { usePersistedVolumes, useNicknames, useKnownNames } from "../hooks/useFriendPrefs";
 import { useStreamQuality } from "../hooks/useStreamQuality";
 import { useTheme } from "../hooks/useTheme";
+import { useSoundEffects } from "../hooks/useSoundEffects";
 import { copyText } from "../utils/clipboard";
 import { Suspense, lazy } from "react";
 import { Stage } from "../components/Stage";
 import { ControlDock } from "../components/ControlDock";
 import { ParticipantList } from "../components/ParticipantList";
 import { ErrorBoundary } from "../components/ErrorBoundary";
+import { FlameLoader } from "../components/FlameLoader";
 import "@livekit/components-styles";
 import "./Room.css";
 
@@ -48,6 +50,7 @@ function RoomContent({ roomId, onLeave }) {
   const { remember, previousName, isKnown } = useKnownNames();
   const quality = useStreamQuality();
   const { theme, toggleTheme } = useTheme();
+  const { sounds, volume: sfxVolume, setVolume: setSfxVolume } = useSoundEffects();
 
   // Só assina screenshares — economiza banda e CPU
   const screenTracks = useTracks([Track.Source.ScreenShare], {
@@ -231,10 +234,17 @@ function RoomContent({ roomId, onLeave }) {
         quality={quality}
         theme={theme}
         onToggleTheme={toggleTheme}
+        sounds={sounds}
       />
 
       {hasOpenedSettings && (
-        <Suspense fallback={<div className="route-loading">Carregando…</div>}>
+        <Suspense
+          fallback={
+            <div className="route-loading">
+              <FlameLoader size={24} />
+            </div>
+          }
+        >
           <SettingsModal
             open={settingsOpen}
             onClose={() => setSettingsOpen(false)}
@@ -242,6 +252,8 @@ function RoomContent({ roomId, onLeave }) {
             isSharing={isLocalSharing}
             theme={theme}
             onToggleTheme={toggleTheme}
+            sfxVolume={sfxVolume}
+            onSfxVolumeChange={setSfxVolume}
           />
         </Suspense>
       )}
@@ -300,7 +312,7 @@ export function Room({ roomId, participantName, onLeave }) {
   if (loading) {
     return (
       <div className="loading-screen">
-        <div className="spinner" />
+        <FlameLoader />
         <p>Conectando à sala…</p>
       </div>
     );

@@ -1,8 +1,15 @@
 import { useState, useEffect, Suspense, lazy } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { useKeyboardSafeInputs } from "./hooks/useKeyboardSafeInputs";
 
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
 const Room = lazy(() => import("./pages/Room").then((m) => ({ default: m.Room })));
+// Só carrega em ?dev=1 — página de desenvolvimento pra pegar bugs
+// visuais sem precisar de uma sala LiveKit real. Nunca faz parte do
+// fluxo normal do app.
+const DevPreview = lazy(() =>
+  import("./dev/DevPreview").then((m) => ({ default: m.DevPreview }))
+);
 
 /** Sanitiza o ID vindo da URL */
 function cleanRoomId(raw) {
@@ -14,6 +21,8 @@ function cleanRoomId(raw) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [invitedRoom, setInvitedRoom] = useState(null);
+  const isDevPreview = new URLSearchParams(window.location.search).get("dev") === "1";
+  useKeyboardSafeInputs();
 
   // Lê ?room= da URL na primeira carga
   useEffect(() => {
@@ -38,7 +47,9 @@ export default function App() {
   return (
     <ErrorBoundary onReset={handleLeave}>
       <Suspense fallback={<div className="route-loading">Carregando…</div>}>
-        {session ? (
+        {isDevPreview ? (
+          <DevPreview />
+        ) : session ? (
           <Room
             roomId={session.roomId}
             participantName={session.participantName}

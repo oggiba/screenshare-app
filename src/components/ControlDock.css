@@ -139,6 +139,28 @@
 
 .dock-btn.danger:hover { background: rgba(178,68,68,0.24); color: var(--danger); }
 
+.dock-btn-wrap { position: relative; display: flex; }
+
+.dock-toast {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 240px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  text-align: center;
+}
+
 @media (max-width: 860px) {
   .dock-btn span { display: none; }
   .dock-btn { padding: 10px 13px; }

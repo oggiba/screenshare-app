@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sun, Moon, TriangleAlert } from "lucide-react";
+import { X, Sun, Moon, TriangleAlert, Volume2, VolumeX } from "lucide-react";
 import { useRoomContext } from "@livekit/components-react";
 import { useAudioDevices } from "../hooks/useDevices";
 import { QUALITY_PRESETS, DEGRADATION_MODES } from "../hooks/useStreamQuality";
@@ -16,7 +16,16 @@ const rowVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
 };
 
-export function SettingsModal({ open, onClose, quality, isSharing, theme, onToggleTheme }) {
+export function SettingsModal({
+  open,
+  onClose,
+  quality,
+  isSharing,
+  theme,
+  onToggleTheme,
+  sfxVolume,
+  onSfxVolumeChange,
+}) {
   const room = useRoomContext();
   const { mics, speakers, selectedMic, selectedSpeaker, pickMic, pickSpeaker, refresh } =
     useAudioDevices();
@@ -101,6 +110,28 @@ export function SettingsModal({ open, onClose, quality, isSharing, theme, onTogg
                     <span className="mode-hint">Fundo escuro e quente</span>
                   </button>
                 </div>
+              </motion.div>
+
+              <div className="setting-divider" />
+
+              {/* Sons da interface */}
+              <motion.div className="setting-group" variants={rowVariants}>
+                <label>Sons da interface</label>
+                <div className="sfx-volume-control">
+                  {sfxVolume > 0 ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sfxVolume}
+                    onChange={(e) => onSfxVolumeChange(Number(e.target.value))}
+                  />
+                  <span className="sfx-volume-value">{sfxVolume}%</span>
+                </div>
+                <p className="setting-hint">
+                  Clique, mutar/desmutar e iniciar/parar transmissão. Sintetizado
+                  localmente — nenhum arquivo é baixado.
+                </p>
               </motion.div>
 
               <div className="setting-divider" />
