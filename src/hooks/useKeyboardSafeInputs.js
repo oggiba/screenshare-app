@@ -15,19 +15,31 @@ export function useKeyboardSafeInputs() {
     const vv = window.visualViewport;
     if (!vv) return;
 
+    // Guarda o timeout num let de módulo do efeito, não um ref — o hook
+    // não expõe nada ao componente, então não precisa sobreviver a
+    // re-renders, só ao próprio ciclo de vida do listener.
+    let pending = null;
+
     const onResize = () => {
       const el = document.activeElement;
       if (!el) return;
       const tag = el.tagName;
       if (tag !== "INPUT" && tag !== "TEXTAREA") return;
       // Pequeno atraso: no iOS a animação do teclado ainda está em
-      // andamento quando o primeiro "resize" dispara.
-      setTimeout(() => {
+      // andamento quando o primeiro "resize" dispara. Cancela um
+      // agendamento anterior em vez de empilhar — o visualViewport pode
+      // disparar "resize" várias vezes seguidas durante a animação.
+      if (pending) clearTimeout(pending);
+      pending = setTimeout(() => {
         el.scrollIntoView({ block: "center", behavior: "smooth" });
+        pending = null;
       }, 60);
     };
 
     vv.addEventListener("resize", onResize);
-    return () => vv.removeEventListener("resize", onResize);
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      if (pending) clearTimeout(pending);
+    };
   }, []);
 }

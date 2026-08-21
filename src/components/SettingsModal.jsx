@@ -96,6 +96,8 @@ export function SettingsModal({
               <motion.button
                 className="modal-close"
                 onClick={onClose}
+                title="Fechar"
+                aria-label="Fechar configurações"
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
               >

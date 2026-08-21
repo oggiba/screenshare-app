@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
@@ -143,6 +143,23 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
   const [cameraOn, setCameraOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [shareError, setShareError] = useState(null);
+  const shareErrorTimeoutRef = useRef(null);
+
+  // Substitui qualquer timeout de dispensa pendente por um novo, e limpa
+  // ao desmontar — sem isto, dois erros seguidos empilhavam timers, e um
+  // timer podia disparar setState depois do componente já ter saído
+  // (ex.: usuário sai da sala logo após uma falha de compartilhamento).
+  const showShareError = useCallback((message) => {
+    if (shareErrorTimeoutRef.current) clearTimeout(shareErrorTimeoutRef.current);
+    setShareError(message);
+    shareErrorTimeoutRef.current = setTimeout(() => setShareError(null), 5000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (shareErrorTimeoutRef.current) clearTimeout(shareErrorTimeoutRef.current);
+    };
+  }, []);
 
   // getDisplayMedia simplesmente não existe na maioria dos navegadores
   // mobile (Safari iOS sempre, Chrome Android em muitas versões) — sem
@@ -208,10 +225,9 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
 
     if (!screenOn && !screenShareSupported) {
       sounds?.click();
-      setShareError(
+      showShareError(
         "Este navegador não permite compartilhar tela. Tente o Chrome no computador, ou no Android use o Chrome mais recente."
       );
-      setTimeout(() => setShareError(null), 5000);
       return;
     }
 
@@ -219,13 +235,21 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
     const next = !screenOn;
     // Em alguns navegadores Chromium no Android (relatado no Brave), o
     // seletor nativo "escolha o que compartilhar" aparece atrás da página
-    // em vez de por cima. Suspeita forte: os cards de participante usam
-    // layout do Framer Motion, que mantém uma camada de composição GPU
-    // ativa mesmo parado — e isso é uma causa conhecida desse tipo de UI
-    // nativa "sumir" atrás de conteúdo com transform. Desligar transform/
-    // will-change do palco bem na janela em que o seletor abriria evita
-    // competir pela mesma camada.
-    if (next) document.body.classList.add("picker-opening");
+    // em vez de por cima. Suspeita forte: elementos com layout do Framer
+    // Motion mantêm uma camada de composição GPU ativa mesmo parados —
+    // causa conhecida desse tipo de UI nativa "sumir" atrás de conteúdo
+    // com transform. Desliga transform/will-change na página inteira
+    // (ver base.css, body.picker-opening) e, mais importante, espera
+    // dois frames depois de marcar "busy" (que já dispara um re-render
+    // dos botões do dock) para o navegador realmente assentar essa
+    // repintura ANTES de pedir o seletor — chamá-lo no mesmo tick do
+    // clique corre o risco de competir com uma repintura em andamento.
+    if (next) {
+      document.body.classList.add("picker-opening");
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      );
+    }
     try {
       // Resolução e bitrate vêm do preset escolhido nas configurações.
       // Manter os dois casados é o que evita imagem borrada.
@@ -240,8 +264,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
       // Usuário cancelou o seletor de tela — não é erro real
       if (err?.name !== "NotAllowedError") {
         console.error("Erro no screenshare:", err);
-        setShareError("Não foi possível iniciar o compartilhamento de tela.");
-        setTimeout(() => setShareError(null), 5000);
+        showShareError("Não foi possível iniciar o compartilhamento de tela.");
       }
     } finally {
       setBusy(false);
@@ -346,6 +369,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             onToggleTheme();
           }}
           title={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          aria-label={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
           whileHover={hover}
           whileTap={{ ...tap, rotate: 25 }}
         >
@@ -368,6 +392,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             onOpenSettings();
           }}
           title="Configurações de áudio"
+          aria-label="Abrir configurações"
           whileHover={{ ...hover, rotate: 40 }}
           whileTap={tap}
         >
