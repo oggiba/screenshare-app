@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Mic, MicOff, MonitorUp, Pencil, X } from "lucide-react";
 import {
   useParticipants,
   useLocalParticipant,
@@ -106,16 +107,24 @@ function ParticipantRow({
                 antes: {previousName}
               </span>
             )}
-            {isSharing && <span className="status-chip sharing">🖥️ transmitindo</span>}
+            {isSharing && (
+              <span className="status-chip sharing">
+                <MonitorUp size={11} /> transmitindo
+              </span>
+            )}
             {isSilenced && !isLocal && <span className="status-chip silenced">silenciado</span>}
           </div>
         </div>
 
         <div className="participant-icons">
           {isMuted ? (
-            <span className="mic-icon muted" title="Microfone desligado">🔇</span>
+            <span className="mic-icon muted" title="Microfone desligado">
+              <MicOff size={15} />
+            </span>
           ) : (
-            <span className="mic-icon on" title="Microfone ligado">🎙️</span>
+            <span className="mic-icon on" title="Microfone ligado">
+              <Mic size={15} />
+            </span>
           )}
         </div>
       </div>
@@ -151,7 +160,7 @@ function ParticipantRow({
                 setRenaming(true);
               }}
             >
-              ✏️ {nickname ? "Editar apelido" : "Dar um apelido"}
+              <Pencil size={13} /> {nickname ? "Editar apelido" : "Dar um apelido"}
             </button>
           </motion.div>
         )}
@@ -168,46 +177,69 @@ export function ParticipantList({
   getDisplayName,
   getPreviousName,
   getIsKnown,
+  mobileOpen,
+  onMobileClose,
 }) {
   const participants = useParticipants();
   const { localParticipant } = useLocalParticipant();
 
   return (
-    <aside className="participant-sidebar">
-      <div className="sidebar-header">
-        <span className="sidebar-title">Na sala</span>
-        <span className="participant-count">{participants.length}</span>
-      </div>
+    <>
+      {/* Só existe visualmente em telas ≤860px, quando a sidebar vira gaveta */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="sidebar-backdrop"
+            onClick={onMobileClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="participant-scroll">
-        <AnimatePresence initial={false}>
-          {participants.map((p) => (
-            // Cada linha isolada numa fronteira própria: se algo quebrar
-            // ao renderizar UM participante específico, o resto da lista
-            // (e a sala inteira) continua de pé.
-            <ErrorBoundary key={p.identity} fallback={<RowFallback name={p.identity} />}>
-              <ParticipantRow
-                participant={p}
-                isLocal={p.identity === localParticipant.identity}
-                volume={volumes[p.identity] ?? 100}
-                onVolumeChange={onVolumeChange}
-                nickname={nicknames[p.identity]}
-                onNicknameChange={onNicknameChange}
-                displayName={getDisplayName(p)}
-                previousName={getPreviousName(p)}
-                isKnown={getIsKnown(p)}
-              />
-            </ErrorBoundary>
-          ))}
-        </AnimatePresence>
-      </div>
+      <aside className={`participant-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
+        <div className="sidebar-header">
+          <span className="sidebar-title">Na sala</span>
+          <div className="sidebar-header-right">
+            <span className="participant-count">{participants.length}</span>
+            <button className="sidebar-close" onClick={onMobileClose} title="Fechar">
+              <X size={18} />
+            </button>
+          </div>
+        </div>
 
-      <div className="sidebar-footer">
-        <p className="sidebar-hint">
-          Clique em alguém para ajustar o volume ou dar um apelido. Apelidos são
-          privados — só você os vê.
-        </p>
-      </div>
-    </aside>
+        <div className="participant-scroll">
+          <AnimatePresence initial={false}>
+            {participants.map((p) => (
+              // Cada linha isolada numa fronteira própria: se algo quebrar
+              // ao renderizar UM participante específico, o resto da lista
+              // (e a sala inteira) continua de pé.
+              <ErrorBoundary key={p.identity} fallback={<RowFallback name={p.identity} />}>
+                <ParticipantRow
+                  participant={p}
+                  isLocal={p.identity === localParticipant.identity}
+                  volume={volumes[p.identity] ?? 100}
+                  onVolumeChange={onVolumeChange}
+                  nickname={nicknames[p.identity]}
+                  onNicknameChange={onNicknameChange}
+                  displayName={getDisplayName(p)}
+                  previousName={getPreviousName(p)}
+                  isKnown={getIsKnown(p)}
+                />
+              </ErrorBoundary>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        <div className="sidebar-footer">
+          <p className="sidebar-hint">
+            Clique em alguém para ajustar o volume ou dar um apelido. Apelidos são
+            privados — só você os vê.
+          </p>
+        </div>
+      </aside>
+    </>
   );
 }

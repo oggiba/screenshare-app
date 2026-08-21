@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Flame, Ticket, Lock, TriangleAlert, Check } from "lucide-react";
 import "./Home.css";
 
 /** Gera ID curto e legível — evita caracteres ambíguos (0/O, 1/l/I) */
@@ -77,7 +78,7 @@ export function Home({ onJoin, invitedRoom }) {
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 14, delay: 0.15 }}
           >
-            🕯️
+            <Flame size={38} strokeWidth={1.75} />
           </motion.span>
           <h1>Kindling</h1>
           <p className="home-subtitle">
@@ -90,7 +91,9 @@ export function Home({ onJoin, invitedRoom }) {
         {/* Se veio por convite, mostra a sala */}
         {isInvite && (
           <motion.div className="invite-banner" variants={itemVariants}>
-            <span className="invite-icon">🎟️</span>
+            <span className="invite-icon">
+              <Ticket size={20} strokeWidth={1.75} />
+            </span>
             <div>
               <strong>Sala</strong>
               <code>{invitedRoom}</code>
@@ -100,7 +103,9 @@ export function Home({ onJoin, invitedRoom }) {
 
         {/* Aviso de segurança */}
         <motion.div className="security-notice" variants={itemVariants}>
-          <span className="notice-icon">🔒</span>
+          <span className="notice-icon">
+            <Lock size={18} strokeWidth={1.75} />
+          </span>
           <div>
             <strong>Entre apenas em salas de amigos</strong>
             <p>
@@ -135,7 +140,9 @@ export function Home({ onJoin, invitedRoom }) {
               exit={{ opacity: 0, height: 0, y: -6 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <span>⚠️</span>
+              <span>
+                <TriangleAlert size={18} strokeWidth={1.75} />
+              </span>
               <div>
                 <strong>Confirme antes de entrar</strong>
                 <p>
@@ -156,8 +163,9 @@ export function Home({ onJoin, invitedRoom }) {
           whileHover={name.trim() ? { scale: 1.02 } : undefined}
           whileTap={name.trim() ? { scale: 0.97 } : undefined}
         >
+          {confirmed && <Check size={16} strokeWidth={2.5} />}
           {confirmed
-            ? "✓ Confirmo — entrar agora"
+            ? "Confirmo — entrar agora"
             : isInvite
             ? "Entrar na sala"
             : "Criar sala e gerar link"}

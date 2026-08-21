@@ -83,8 +83,8 @@
 .home-logo { text-align: center; }
 
 .logo-icon {
-  font-size: 2.3rem;
-  display: block;
+  display: flex;
+  justify-content: center;
   margin-bottom: 6px;
   color: var(--accent);
 }
@@ -113,7 +113,7 @@
   padding: 13px 16px;
 }
 
-.invite-icon { font-size: 1.3rem; }
+.invite-icon { display: flex; align-items: center; color: var(--success); flex-shrink: 0; }
 
 .invite-banner strong {
   display: block;
@@ -134,6 +134,7 @@
 /* Aviso de segurança */
 .security-notice {
   display: flex;
+  align-items: flex-start;
   gap: 11px;
   background: var(--accent-glow);
   border: 1px solid var(--border-accent);
@@ -141,7 +142,7 @@
   padding: 13px 15px;
 }
 
-.notice-icon { font-size: 1.1rem; flex-shrink: 0; }
+.notice-icon { display: flex; align-items: center; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
 
 .security-notice strong {
   font-size: 0.83rem;
@@ -190,11 +191,20 @@
 /* Warning confirm */
 .warning-confirm {
   display: flex;
+  align-items: flex-start;
   gap: 11px;
   background: rgba(184, 134, 46, 0.1);
   border: 1px solid rgba(184, 134, 46, 0.3);
   border-radius: var(--radius);
   padding: 13px 15px;
+}
+
+.warning-confirm > span {
+  display: flex;
+  align-items: center;
+  color: var(--warning);
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .warning-confirm strong {
@@ -211,6 +221,10 @@
 }
 
 .primary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 13px;
   background: var(--accent);
   border: none;

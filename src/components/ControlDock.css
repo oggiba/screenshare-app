@@ -11,7 +11,12 @@
   padding: 0 16px;
   background: var(--bg-card);
   border-top: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
+
+.control-dock::-webkit-scrollbar { display: none; }
 
 /* Quality pip */
 .quality-pip {
@@ -44,6 +49,9 @@
 }
 
 .usage-pip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 5px 11px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -134,4 +142,14 @@
 @media (max-width: 860px) {
   .dock-btn span { display: none; }
   .dock-btn { padding: 10px 13px; }
+  .dock-buttons { margin: 0; flex-shrink: 0; }
+}
+
+/* Nas telas mais estreitas, os pips de info cedem espaço pros controles
+   essenciais (mic/áudio/tela/tema/config/sair), que nunca somem. */
+@media (max-width: 480px) {
+  .usage-pip,
+  .stream-quality-tag {
+    display: none;
+  }
 }

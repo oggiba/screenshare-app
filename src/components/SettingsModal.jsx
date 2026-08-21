@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { X, Sun, Moon, TriangleAlert } from "lucide-react";
 import { useRoomContext } from "@livekit/components-react";
 import { useAudioDevices } from "../hooks/useDevices";
 import { QUALITY_PRESETS, DEGRADATION_MODES } from "../hooks/useStreamQuality";
@@ -76,7 +77,7 @@ export function SettingsModal({ open, onClose, quality, isSharing, theme, onTogg
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
               >
-                ✕
+                <X size={16} />
               </motion.button>
             </div>
 
@@ -89,14 +90,14 @@ export function SettingsModal({ open, onClose, quality, isSharing, theme, onTogg
                     className={`mode-option ${theme === "light" ? "selected" : ""}`}
                     onClick={() => theme !== "light" && onToggleTheme()}
                   >
-                    <span className="mode-label">☀️ Claro</span>
+                    <span className="mode-label"><Sun size={14} /> Claro</span>
                     <span className="mode-hint">Fundo claro, tipo papel</span>
                   </button>
                   <button
                     className={`mode-option ${theme === "dark" ? "selected" : ""}`}
                     onClick={() => theme !== "dark" && onToggleTheme()}
                   >
-                    <span className="mode-label">🌙 Escuro</span>
+                    <span className="mode-label"><Moon size={14} /> Escuro</span>
                     <span className="mode-hint">Fundo escuro e quente</span>
                   </button>
                 </div>
@@ -187,8 +188,11 @@ export function SettingsModal({ open, onClose, quality, isSharing, theme, onTogg
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                   >
-                    ⚠️ Você está transmitindo agora. A nova qualidade vale a partir da
-                    próxima vez que você iniciar o compartilhamento.
+                    <TriangleAlert size={15} />
+                    <span>
+                      Você está transmitindo agora. A nova qualidade vale a partir da
+                      próxima vez que você iniciar o compartilhamento.
+                    </span>
                   </motion.div>
                 )}
               </AnimatePresence>

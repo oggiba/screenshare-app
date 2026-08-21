@@ -1,6 +1,19 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  MonitorUp,
+  Square,
+  Sun,
+  Moon,
+  Settings as SettingsIcon,
+  LogOut,
+  ArrowDown,
+} from "lucide-react";
+import {
   useLocalParticipant,
   useRoomContext,
   useConnectionQualityIndicator,
@@ -52,7 +65,7 @@ function UsagePip() {
 
   return (
     <div className="usage-pip" title="Dados recebidos nesta sessão — conta na cota mensal do LiveKit">
-      ↓ {label}
+      <ArrowDown size={11} /> {label}
     </div>
   );
 }
@@ -203,8 +216,9 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            style={{ display: "inline-flex" }}
           >
-            {micOn ? "🎙️" : "🔇"}
+            {micOn ? <Mic size={16} /> : <MicOff size={16} />}
           </motion.span>
           <span>{micOn ? "Mic ligado" : "Mic mudo"}</span>
         </motion.button>
@@ -217,7 +231,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
           whileHover={hover}
           whileTap={tap}
         >
-          {deafened ? "🔕" : "🔊"}
+          {deafened ? <VolumeX size={16} /> : <Volume2 size={16} />}
           <span>{deafened ? "Áudio mudo" : "Áudio ligado"}</span>
         </motion.button>
 
@@ -231,7 +245,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
           whileTap={tap}
           animate={screenOn ? { boxShadow: "0 0 0 4px var(--accent-glow)" } : { boxShadow: "0 0 0 0px transparent" }}
         >
-          {screenOn ? "⏹️" : "🖥️"}
+          {screenOn ? <Square size={15} /> : <MonitorUp size={16} />}
           <span>{screenOn ? "Parar transmissão" : "Compartilhar tela"}</span>
         </motion.button>
 
@@ -248,9 +262,9 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             initial={{ rotate: -90, opacity: 0 }}
             animate={{ rotate: 0, opacity: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            style={{ display: "inline-block" }}
+            style={{ display: "inline-flex" }}
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </motion.span>
         </motion.button>
 
@@ -262,7 +276,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
           whileHover={{ ...hover, rotate: 40 }}
           whileTap={tap}
         >
-          ⚙️
+          <SettingsIcon size={16} />
         </motion.button>
 
         {/* Sair */}
@@ -273,7 +287,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
           whileHover={hover}
           whileTap={tap}
         >
-          📴
+          <LogOut size={16} />
           <span>Sair</span>
         </motion.button>
       </div>

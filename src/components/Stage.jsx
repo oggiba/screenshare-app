@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Monitor, MicOff, Maximize } from "lucide-react";
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import "./Stage.css";
@@ -25,7 +26,11 @@ function PersonCard({ participant, label, big }) {
       <div className="person-avatar">{label.charAt(0).toUpperCase()}</div>
       <div className="person-footer">
         <span className="person-name">{label}</span>
-        {isMuted && <span className="person-mic">🔇</span>}
+        {isMuted && (
+          <span className="person-mic">
+            <MicOff size={11} />
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -62,7 +67,9 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
       <VideoTrack trackRef={trackRef} className="screen-video" />
 
       <div className="tile-bar">
-        <span className="tile-name">🖥️ {label}</span>
+        <span className="tile-name">
+          <Monitor size={13} /> {label}
+        </span>
         {!compact && (
           <motion.button
             className="tile-action"
@@ -74,7 +81,7 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
           >
-            ⛶
+            <Maximize size={13} />
           </motion.button>
         )}
       </div>
@@ -162,7 +169,9 @@ export function Stage({ screenTracks, participants, displayName }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
           >
-            <span>🖥️</span>
+            <span>
+              <Monitor size={20} strokeWidth={1.75} />
+            </span>
             <div>
               <strong>Ninguém está compartilhando a tela</strong>
               <p>

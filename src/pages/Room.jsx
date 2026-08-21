@@ -7,6 +7,7 @@ import {
   useParticipants,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
+import { Flame, Link, Check, Lock, Users, Settings, CircleX } from "lucide-react";
 import { useToken } from "../hooks/useToken";
 import { usePersistedVolumes, useNicknames, useKnownNames } from "../hooks/useFriendPrefs";
 import { useStreamQuality } from "../hooks/useStreamQuality";
@@ -36,6 +37,9 @@ function RoomContent({ roomId, onLeave }) {
   const [deafened, setDeafened] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showLink, setShowLink] = useState(false);
+  // Sidebar de participantes vira uma gaveta em telas ≤860px (ver Room.css);
+  // esse estado só é relevante nesse breakpoint, ignorado no layout desktop.
+  const [participantsOpen, setParticipantsOpen] = useState(false);
 
   const participants = useParticipants();
   const isLocalSharing = participants.some((p) => p.isLocal && p.isScreenShareEnabled);
@@ -144,7 +148,7 @@ function RoomContent({ roomId, onLeave }) {
             animate={{ rotate: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 220, damping: 16 }}
           >
-            🕯️
+            <Flame size={20} strokeWidth={2} />
           </motion.span>
           <div className="topbar-room">
             <span className="topbar-label">Sala</span>
@@ -158,10 +162,24 @@ function RoomContent({ roomId, onLeave }) {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
         >
-          {copied ? "✓ Link copiado!" : "🔗 Copiar link do convite"}
+          {copied ? <Check size={15} /> : <Link size={15} />}
+          <span>{copied ? "Link copiado!" : "Copiar link do convite"}</span>
         </motion.button>
 
-        <div className="topbar-warning">🔒 Envie o link apenas para amigos</div>
+        <div className="topbar-warning">
+          <Lock size={13} /> Envie o link apenas para amigos
+        </div>
+
+        <motion.button
+          className="topbar-people-btn"
+          onClick={() => setParticipantsOpen(true)}
+          title="Ver participantes"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+        >
+          <Users size={18} />
+          <span className="topbar-people-count">{participants.length}</span>
+        </motion.button>
       </header>
 
       <AnimatePresence>
@@ -195,6 +213,8 @@ function RoomContent({ roomId, onLeave }) {
           getDisplayName={displayName}
           getPreviousName={previousName}
           getIsKnown={isKnown}
+          mobileOpen={participantsOpen}
+          onMobileClose={() => setParticipantsOpen(false)}
         />
       </div>
 
@@ -267,7 +287,8 @@ export function Room({ roomId, participantName, onLeave }) {
   if (!LIVEKIT_URL) {
     return (
       <div className="error-screen">
-        <h2>⚙️ Configuração incompleta</h2>
+        <Settings className="error-icon" size={34} strokeWidth={1.75} />
+        <h2>Configuração incompleta</h2>
         <p>
           A variável <code>VITE_LIVEKIT_URL</code> não está definida no Netlify.
         </p>
@@ -288,7 +309,8 @@ export function Room({ roomId, participantName, onLeave }) {
   if (error) {
     return (
       <div className="error-screen">
-        <h2>❌ Não foi possível conectar</h2>
+        <CircleX className="error-icon" size={34} strokeWidth={1.75} />
+        <h2>Não foi possível conectar</h2>
         <p>{error}</p>
         <button onClick={onLeave}>Voltar ao início</button>
       </div>

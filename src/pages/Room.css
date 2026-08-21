@@ -42,9 +42,9 @@
   100% { background-position: -200% 0; }
 }
 
-.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
-.topbar-logo { font-size: 1.1rem; color: var(--accent); }
+.topbar-logo { display: flex; color: var(--accent); flex-shrink: 0; }
 
 .topbar-room { display: flex; align-items: center; gap: 7px; }
 
@@ -68,6 +68,9 @@
 }
 
 .invite-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   padding: 6px 14px;
   background: var(--accent);
   border: none;
@@ -77,6 +80,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.15s ease-out;
+  flex-shrink: 0;
 }
 
 .invite-btn:hover { background: var(--accent-dark); }
@@ -84,8 +88,34 @@
 
 .topbar-warning {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.73rem;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Botão de participantes — só existe visualmente em telas estreitas,
+   onde a sidebar vira gaveta (ver ParticipantList.css) */
+.topbar-people-btn {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.topbar-people-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
 }
 
 /* Body */
@@ -136,8 +166,11 @@
 @media (max-width: 860px) {
   .topbar-warning { display: none; }
   .link-fallback { flex-wrap: wrap; }
+  .topbar-people-btn { display: flex; }
 }
 
 @media (max-width: 560px) {
   .invite-btn { font-size: 0.75rem; padding: 6px 10px; }
+  .invite-btn span { display: none; }
+  .topbar-room .topbar-label { display: none; }
 }

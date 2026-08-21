@@ -19,6 +19,26 @@
   border-bottom: 1px solid var(--border);
 }
 
+.sidebar-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.sidebar-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+
 .sidebar-title {
   font-size: 0.72rem;
   font-weight: 700;
@@ -107,6 +127,9 @@
 .participant-status { display: flex; gap: 5px; margin-top: 2px; }
 
 .status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: 0.66rem;
   padding: 1px 6px;
   border-radius: 4px;
@@ -121,8 +144,8 @@
   cursor: help;
 }
 
-.mic-icon { font-size: 0.85rem; }
-.mic-icon.muted { opacity: 0.45; }
+.mic-icon { display: flex; color: var(--text-secondary); }
+.mic-icon.muted { opacity: 0.55; color: var(--danger); }
 
 /* Badge de apelido local */
 .nick-badge {
@@ -161,6 +184,9 @@
 }
 
 .rename-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 5px 10px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -238,6 +264,43 @@
   line-height: 1.5;
 }
 
+/* =========================================
+   GAVETA MOBILE/TABLET (≤860px)
+   Em vez de sumir, a sidebar vira um painel deslizante acionado pelo
+   botão de participantes na topbar.
+   ========================================= */
+
+.sidebar-backdrop {
+  display: none;
+}
+
 @media (max-width: 860px) {
-  .participant-sidebar { display: none; }
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 199;
+  }
+
+  .participant-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    border-left: 1px solid var(--border);
+    box-shadow: -12px 0 32px -12px rgba(0, 0, 0, 0.4);
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform 0.28s ease-out;
+  }
+
+  .participant-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: flex;
+  }
 }
