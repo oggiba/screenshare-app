@@ -1,0 +1,66 @@
+/* Kindling — design tokens.
+   Tema claro ("papel") é o padrão em :root; [data-theme="dark"] sobrescreve
+   os mesmos nomes de variável para o tema noturno. Ver
+   docs/superpowers/specs/2026-08-20-kindling-redesign-design.md */
+
+:root {
+  --bg-base: #F6F1E4;
+  --bg-card: #EFE7D2;
+  --bg-elevated: #E8DFC7;
+  --bg-hover: #DED2B3;
+  --bg-stage: #33291E;
+
+  --accent: #C9702D;
+  --accent-glow: rgba(201, 112, 45, 0.22);
+  --accent-dark: #A85A20;
+  --accent-text: #FFFFFF;
+
+  --success: #4C8B5B;
+  --warning: #B8862E;
+  --danger: #B24444;
+  --speaking: #4C8B5B;
+
+  --text-primary: #2B2620;
+  --text-secondary: #6B6151;
+  --text-muted: #9C927C;
+
+  --border: rgba(43, 38, 32, 0.10);
+  --border-strong: rgba(43, 38, 32, 0.20);
+  --border-accent: rgba(201, 112, 45, 0.35);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --sidebar-w: 260px;
+  --dock-h: 68px;
+}
+
+[data-theme="dark"] {
+  --bg-base: #26221D;
+  --bg-card: #2E2921;
+  --bg-elevated: #383026;
+  --bg-hover: #443A2C;
+  --bg-stage: #17140F;
+
+  --accent: #D98A4A;
+  --accent-glow: rgba(217, 138, 74, 0.25);
+  --accent-dark: #B96F35;
+  --accent-text: #FFFFFF;
+
+  --success: #6FA87D;
+  --warning: #C99A4A;
+  --danger: #C96B62;
+  --speaking: #6FA87D;
+
+  --text-primary: #EDE6D8;
+  --text-secondary: #B8AD98;
+  --text-muted: #7D735F;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-accent: rgba(217, 138, 74, 0.35);
+}
