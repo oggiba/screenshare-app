@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "./Home.css";
 
 /** Gera ID curto e legível — evita caracteres ambíguos (0/O, 1/l/I) */
 function generateRoomId() {
@@ -48,7 +49,7 @@ export function Home({ onJoin, invitedRoom }) {
       <div className="home-card">
         <div className="home-logo">
           <span className="logo-icon">⬡</span>
-          <h1>ShareRoom</h1>
+          <h1>Kindling</h1>
           <p className="home-subtitle">
             {isInvite
               ? "Você foi convidado para uma sala"

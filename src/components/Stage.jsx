@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 import { Track } from "livekit-client";
+import "./Stage.css";
 
 /* ============================================================
    Card de participante — mostrado quando ninguém compartilha,

@@ -1,0 +1,123 @@
+/* =========================================
+   ROOM — SHELL
+   ========================================= */
+
+.room-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+/* Topbar */
+.room-topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  padding: 0 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+
+.topbar-logo { font-size: 1.1rem; color: var(--accent); }
+
+.topbar-room { display: flex; align-items: center; gap: 7px; }
+
+.topbar-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.topbar-room code {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 9px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+.invite-btn {
+  padding: 6px 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-out;
+}
+
+.invite-btn:hover { background: var(--accent-dark); }
+.invite-btn.copied { background: var(--success); }
+
+.topbar-warning {
+  margin-left: auto;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+
+/* Body */
+.room-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* --- Fallback de cópia do link --- */
+
+.link-fallback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(184, 134, 46, 0.12);
+  border-bottom: 1px solid rgba(184, 134, 46, 0.3);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.link-fallback input {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  outline: none;
+}
+
+.link-fallback button {
+  padding: 6px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .topbar-warning { display: none; }
+  .link-fallback { flex-wrap: wrap; }
+}
+
+@media (max-width: 560px) {
+  .invite-btn { font-size: 0.75rem; padding: 6px 10px; }
+}

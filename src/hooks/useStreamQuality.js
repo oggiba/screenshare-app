@@ -90,7 +90,7 @@ export function useStreamQuality() {
     return {
       audio: true,
       resolution: preset.resolution,
-      // Evita o efeito espelho de compartilhar a própria aba do ShareRoom
+      // Evita o efeito espelho de compartilhar a própria aba do Kindling
       selfBrowserSurface: "exclude",
       // Permite trocar de janela sem reiniciar a transmissão
       surfaceSwitching: "include",

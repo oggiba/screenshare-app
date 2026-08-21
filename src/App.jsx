@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Home } from "./pages/Home";
-import { Room } from "./pages/Room";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import "./App.css";
+
+const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
+const Room = lazy(() => import("./pages/Room").then((m) => ({ default: m.Room })));
 
 /** Sanitiza o ID vindo da URL */
 function cleanRoomId(raw) {
@@ -37,15 +37,17 @@ export default function App() {
   // Room já tem sua própria fronteira interna, mais específica.
   return (
     <ErrorBoundary onReset={handleLeave}>
-      {session ? (
-        <Room
-          roomId={session.roomId}
-          participantName={session.participantName}
-          onLeave={handleLeave}
-        />
-      ) : (
-        <Home onJoin={handleJoin} invitedRoom={invitedRoom} />
-      )}
+      <Suspense fallback={<div className="route-loading">Carregando…</div>}>
+        {session ? (
+          <Room
+            roomId={session.roomId}
+            participantName={session.participantName}
+            onLeave={handleLeave}
+          />
+        ) : (
+          <Home onJoin={handleJoin} invitedRoom={invitedRoom} />
+        )}
+      </Suspense>
     </ErrorBoundary>
   );
 }

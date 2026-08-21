@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("ShareRoom crash capturado:", error, info);
+    console.error("Kindling crash capturado:", error, info);
   }
 
   handleReset = () => {
