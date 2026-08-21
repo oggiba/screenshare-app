@@ -19,6 +19,8 @@ import {
   ChevronsUpDown,
   Pencil,
   X,
+  Camera,
+  CameraOff,
 } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { useSoundEffects } from "../hooks/useSoundEffects";
@@ -54,6 +56,7 @@ export function DevPreview() {
   const [micOn, setMicOn] = useState(true);
   const [deafened, setDeafened] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
   const [busy] = useState(false);
   const [shareError, setShareError] = useState(null);
   const [controlsHidden, setControlsHidden] = useState(false);
@@ -94,6 +97,10 @@ export function DevPreview() {
           <button onClick={() => toggleParticipant("dev-ana", "speaking")}>toggle Ana</button>
         </div>
         <div className="dev-panel-row">
+          <span>Câmera (Você, na visão "ninguém")</span>
+          <button onClick={() => setCameraOn((v) => !v)} className={cameraOn ? "active" : ""}>{cameraOn ? "ligada" : "desligada"}</button>
+        </div>
+        <div className="dev-panel-row">
           <span>Fullscreen limpo</span>
           <button onClick={() => setControlsHidden((v) => !v)}>{controlsHidden ? "mostrar" : "esconder"} controles</button>
         </div>
@@ -116,15 +123,22 @@ export function DevPreview() {
           {stageView === "empty" && (
             <div className="people-view">
               <div className={`people-grid count-${Math.min(participants.length, 6)}`}>
-                {participants.map((p) => (
-                  <div key={p.identity} className={`person-card ${p.speaking ? "speaking" : ""} ${participants.length <= 2 ? "big" : ""}`}>
-                    <div className="person-avatar">{p.name.charAt(0).toUpperCase()}</div>
-                    <div className="person-footer">
-                      <span className="person-name">{p.name}</span>
-                      {p.muted && <span className="person-mic"><MicOff size={11} /></span>}
+                {participants.map((p) => {
+                  const showCamera = p.isLocal && cameraOn;
+                  return (
+                    <div key={p.identity} className={`person-card ${p.speaking ? "speaking" : ""} ${participants.length <= 2 ? "big" : ""} ${showCamera ? "has-camera" : ""}`}>
+                      {showCamera ? (
+                        <div className="person-camera-video" style={{ background: "linear-gradient(135deg, #444, #111)" }} />
+                      ) : (
+                        <div className="person-avatar">{p.name.charAt(0).toUpperCase()}</div>
+                      )}
+                      <div className="person-footer">
+                        <span className="person-name">{p.name}</span>
+                        {p.muted && <span className="person-mic"><MicOff size={11} /></span>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="stage-callout">
                 <span><Monitor size={20} strokeWidth={1.75} /></span>
@@ -234,6 +248,10 @@ export function DevPreview() {
           <button className={`dock-btn ${micOn ? "active" : "off"}`} onClick={() => { setMicOn((v) => !v); micOn ? sounds.mute() : sounds.unmute(); }} disabled={busy}>
             {micOn ? <Mic size={16} /> : <MicOff size={16} />}
             <span>{micOn ? "Mic ligado" : "Mic mudo"}</span>
+          </button>
+          <button className={`dock-btn ${cameraOn ? "active" : "off"}`} onClick={() => { setCameraOn((v) => !v); sounds.click(); }}>
+            {cameraOn ? <Camera size={16} /> : <CameraOff size={16} />}
+            <span>{cameraOn ? "Câmera ligada" : "Câmera desligada"}</span>
           </button>
           <button className={`dock-btn ${deafened ? "off" : "active"}`} onClick={() => { setDeafened((v) => !v); deafened ? sounds.unmute() : sounds.mute(); }}>
             {deafened ? <VolumeX size={16} /> : <Volume2 size={16} />}

@@ -106,6 +106,20 @@
 
 .person-card.big .person-avatar { width: 68px; height: 68px; font-size: 1.7rem; }
 
+/* Câmera ligada: o card vira um preview de vídeo em vez do círculo */
+.person-card.has-camera {
+  display: block;
+  overflow: hidden;
+  background: #000;
+}
+
+.person-camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .person-footer {
   position: absolute;
   bottom: 7px;
@@ -115,6 +129,20 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.person-card.has-camera .person-footer {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content: flex-start;
+  padding: 14px 8px 6px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+}
+
+.person-card.has-camera .person-name {
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .person-name {
