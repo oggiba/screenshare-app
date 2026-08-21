@@ -12,6 +12,7 @@
 
 /* Topbar */
 .room-topbar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -20,6 +21,25 @@
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.room-topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
+  background-size: 200% 100%;
+  animation: topbarGlow 6s linear infinite;
+  opacity: 0.55;
+}
+
+@keyframes topbarGlow {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .topbar-left { display: flex; align-items: center; gap: 12px; }

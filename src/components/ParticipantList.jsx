@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useParticipants,
   useLocalParticipant,
@@ -51,14 +52,25 @@ function ParticipantRow({
   };
 
   return (
-    <div className={`participant-row ${isSpeaking ? "speaking" : ""}`}>
+    <motion.div
+      className={`participant-row ${isSpeaking ? "speaking" : ""}`}
+      layout
+      initial={{ opacity: 0, x: -14, height: 0 }}
+      animate={{ opacity: 1, x: 0, height: "auto" }}
+      exit={{ opacity: 0, x: 14, height: 0 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+    >
       <div
         className="participant-main"
         onClick={() => !isLocal && !renaming && setExpanded(!expanded)}
       >
-        <div className={`avatar ${isSpeaking ? "pulse" : ""}`}>
+        <motion.div
+          className={`avatar ${isSpeaking ? "pulse" : ""}`}
+          animate={isSpeaking ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+          transition={{ duration: 0.6, repeat: isSpeaking ? Infinity : 0, ease: "easeInOut" }}
+        >
           {displayName.charAt(0).toUpperCase()}
-        </div>
+        </motion.div>
 
         <div className="participant-info">
           {renaming ? (
@@ -109,34 +121,42 @@ function ParticipantRow({
       </div>
 
       {/* Controles individuais — só para outros participantes */}
-      {expanded && !isLocal && (
-        <div className="row-controls">
-          <div className="volume-control">
-            <span className="volume-label">Volume</span>
-            <input
-              type="range"
-              min="0"
-              max="200"
-              value={volume}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => onVolumeChange(participant.identity, Number(e.target.value))}
-            />
-            <span className="volume-value">{volume}%</span>
-          </div>
-
-          <button
-            className="rename-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setDraft(nickname || "");
-              setRenaming(true);
-            }}
+      <AnimatePresence>
+        {expanded && !isLocal && (
+          <motion.div
+            className="row-controls"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           >
-            ✏️ {nickname ? "Editar apelido" : "Dar um apelido"}
-          </button>
-        </div>
-      )}
-    </div>
+            <div className="volume-control">
+              <span className="volume-label">Volume</span>
+              <input
+                type="range"
+                min="0"
+                max="200"
+                value={volume}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => onVolumeChange(participant.identity, Number(e.target.value))}
+              />
+              <span className="volume-value">{volume}%</span>
+            </div>
+
+            <button
+              className="rename-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDraft(nickname || "");
+                setRenaming(true);
+              }}
+            >
+              ✏️ {nickname ? "Editar apelido" : "Dar um apelido"}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -160,24 +180,26 @@ export function ParticipantList({
       </div>
 
       <div className="participant-scroll">
-        {participants.map((p) => (
-          // Cada linha isolada numa fronteira própria: se algo quebrar
-          // ao renderizar UM participante específico, o resto da lista
-          // (e a sala inteira) continua de pé.
-          <ErrorBoundary key={p.identity} fallback={<RowFallback name={p.identity} />}>
-            <ParticipantRow
-              participant={p}
-              isLocal={p.identity === localParticipant.identity}
-              volume={volumes[p.identity] ?? 100}
-              onVolumeChange={onVolumeChange}
-              nickname={nicknames[p.identity]}
-              onNicknameChange={onNicknameChange}
-              displayName={getDisplayName(p)}
-              previousName={getPreviousName(p)}
-              isKnown={getIsKnown(p)}
-            />
-          </ErrorBoundary>
-        ))}
+        <AnimatePresence initial={false}>
+          {participants.map((p) => (
+            // Cada linha isolada numa fronteira própria: se algo quebrar
+            // ao renderizar UM participante específico, o resto da lista
+            // (e a sala inteira) continua de pé.
+            <ErrorBoundary key={p.identity} fallback={<RowFallback name={p.identity} />}>
+              <ParticipantRow
+                participant={p}
+                isLocal={p.identity === localParticipant.identity}
+                volume={volumes[p.identity] ?? 100}
+                onVolumeChange={onVolumeChange}
+                nickname={nicknames[p.identity]}
+                onNicknameChange={onNicknameChange}
+                displayName={getDisplayName(p)}
+                previousName={getPreviousName(p)}
+                isKnown={getIsKnown(p)}
+              />
+            </ErrorBoundary>
+          ))}
+        </AnimatePresence>
       </div>
 
       <div className="sidebar-footer">

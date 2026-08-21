@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   useLocalParticipant,
   useRoomContext,
@@ -6,6 +7,9 @@ import {
 } from "@livekit/components-react";
 import { ConnectionQuality } from "livekit-client";
 import "./ControlDock.css";
+
+const tap = { scale: 0.93 };
+const hover = { scale: 1.04 };
 
 /**
  * Consumo desta sessão.
@@ -186,56 +190,92 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
 
       <div className="dock-buttons">
         {/* Microfone */}
-        <button
+        <motion.button
           className={`dock-btn ${micOn ? "active" : "off"}`}
           onClick={toggleMic}
           disabled={busy}
           title={micOn ? "Desligar microfone" : "Ligar microfone"}
+          whileHover={hover}
+          whileTap={tap}
         >
-          {micOn ? "🎙️" : "🔇"}
+          <motion.span
+            key={micOn ? "on" : "off"}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+          >
+            {micOn ? "🎙️" : "🔇"}
+          </motion.span>
           <span>{micOn ? "Mic ligado" : "Mic mudo"}</span>
-        </button>
+        </motion.button>
 
         {/* Ensurdecer (mutar tudo) */}
-        <button
+        <motion.button
           className={`dock-btn ${deafened ? "off" : "active"}`}
           onClick={onToggleDeafen}
           title={deafened ? "Reativar todo o áudio" : "Mutar todo o áudio da sala"}
+          whileHover={hover}
+          whileTap={tap}
         >
           {deafened ? "🔕" : "🔊"}
           <span>{deafened ? "Áudio mudo" : "Áudio ligado"}</span>
-        </button>
+        </motion.button>
 
         {/* Compartilhar tela */}
-        <button
+        <motion.button
           className={`dock-btn screen ${screenOn ? "sharing" : ""}`}
           onClick={toggleScreen}
           disabled={busy}
           title={screenOn ? "Parar de compartilhar" : "Compartilhar tela"}
+          whileHover={hover}
+          whileTap={tap}
+          animate={screenOn ? { boxShadow: "0 0 0 4px var(--accent-glow)" } : { boxShadow: "0 0 0 0px transparent" }}
         >
           {screenOn ? "⏹️" : "🖥️"}
           <span>{screenOn ? "Parar transmissão" : "Compartilhar tela"}</span>
-        </button>
+        </motion.button>
 
         {/* Tema */}
-        <button
+        <motion.button
           className="dock-btn subtle"
           onClick={onToggleTheme}
           title={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          whileHover={hover}
+          whileTap={{ ...tap, rotate: 25 }}
         >
-          {theme === "dark" ? "☀️" : "🌙"}
-        </button>
+          <motion.span
+            key={theme}
+            initial={{ rotate: -90, opacity: 0 }}
+            animate={{ rotate: 0, opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            style={{ display: "inline-block" }}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </motion.span>
+        </motion.button>
 
         {/* Configurações */}
-        <button className="dock-btn subtle" onClick={onOpenSettings} title="Configurações de áudio">
+        <motion.button
+          className="dock-btn subtle"
+          onClick={onOpenSettings}
+          title="Configurações de áudio"
+          whileHover={{ ...hover, rotate: 40 }}
+          whileTap={tap}
+        >
           ⚙️
-        </button>
+        </motion.button>
 
         {/* Sair */}
-        <button className="dock-btn danger" onClick={onLeave} title="Sair da sala">
+        <motion.button
+          className="dock-btn danger"
+          onClick={onLeave}
+          title="Sair da sala"
+          whileHover={hover}
+          whileTap={tap}
+        >
           📴
           <span>Sair</span>
-        </button>
+        </motion.button>
       </div>
     </div>
   );

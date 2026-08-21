@@ -3,18 +3,71 @@
    ========================================= */
 
 .home-container {
+  position: relative;
   min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   overflow-y: auto;
+  background: var(--bg-base);
+}
+
+.home-container::before {
+  content: "";
+  position: fixed;
+  inset: -10%;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 0%, var(--accent-glow) 0%, transparent 70%),
-    var(--bg-base);
+    radial-gradient(circle at 28% 22%, var(--accent-glow) 0%, transparent 42%),
+    radial-gradient(circle at 76% 68%, var(--accent-glow) 0%, transparent 38%),
+    radial-gradient(ellipse 70% 50% at 50% 0%, var(--accent-glow) 0%, transparent 70%);
+  animation: emberDrift 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ember-field {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ember {
+  position: absolute;
+  bottom: -10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px var(--accent-glow);
+  opacity: 0;
+  animation: emberRise 10s ease-in infinite;
+}
+
+.ember:nth-child(1) { left: 12%; animation-delay: 0s; animation-duration: 10s; }
+.ember:nth-child(2) { left: 30%; animation-delay: 2.2s; animation-duration: 8s; }
+.ember:nth-child(3) { left: 52%; animation-delay: 4.5s; animation-duration: 11s; }
+.ember:nth-child(4) { left: 71%; animation-delay: 1.2s; animation-duration: 9s; }
+.ember:nth-child(5) { left: 88%; animation-delay: 6s; animation-duration: 12s; }
+
+@keyframes emberDrift {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-2%, 3%) scale(1.08); }
+  100% { transform: translate(3%, -2%) scale(0.96); }
+}
+
+@keyframes emberRise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 0.85; }
+  90%  { opacity: 0.35; }
+  100% { transform: translateY(-100vh) translateX(14px); opacity: 0; }
 }
 
 .home-card {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 460px;
   background: var(--bg-card);
@@ -24,6 +77,7 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35);
 }
 
 .home-logo { text-align: center; }
@@ -141,7 +195,6 @@
   border: 1px solid rgba(184, 134, 46, 0.3);
   border-radius: var(--radius);
   padding: 13px 15px;
-  animation: fadeIn 0.2s ease-out;
 }
 
 .warning-confirm strong {

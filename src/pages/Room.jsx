@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -27,6 +28,11 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
 function RoomContent({ roomId, onLeave }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Fica true na primeira abertura e nunca mais volta a false — dispara o
+  // import() preguiçoso do SettingsModal só quando necessário (Task 11), mas
+  // depois disso mantém o componente montado para o AnimatePresence interno
+  // conseguir animar a saída em vez de sumir instantaneamente.
+  const [hasOpenedSettings, setHasOpenedSettings] = useState(false);
   const [deafened, setDeafened] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showLink, setShowLink] = useState(false);
@@ -124,30 +130,55 @@ function RoomContent({ roomId, onLeave }) {
   };
 
   return (
-    <div className="room-shell">
+    <motion.div
+      className="room-shell"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
       <header className="room-topbar">
         <div className="topbar-left">
-          <span className="topbar-logo">⬡</span>
+          <motion.span
+            className="topbar-logo"
+            initial={{ rotate: -20, opacity: 0 }}
+            animate={{ rotate: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 220, damping: 16 }}
+          >
+            🕯️
+          </motion.span>
           <div className="topbar-room">
             <span className="topbar-label">Sala</span>
             <code>{roomId}</code>
           </div>
         </div>
 
-        <button className={`invite-btn ${copied ? "copied" : ""}`} onClick={copyLink}>
+        <motion.button
+          className={`invite-btn ${copied ? "copied" : ""}`}
+          onClick={copyLink}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
+        >
           {copied ? "✓ Link copiado!" : "🔗 Copiar link do convite"}
-        </button>
+        </motion.button>
 
         <div className="topbar-warning">🔒 Envie o link apenas para amigos</div>
       </header>
 
-      {showLink && (
-        <div className="link-fallback">
-          <span>Seu navegador bloqueou a cópia automática. Copie o link à mão:</span>
-          <input readOnly value={inviteUrl} onFocus={(e) => e.target.select()} />
-          <button onClick={() => setShowLink(false)}>Fechar</button>
-        </div>
-      )}
+      <AnimatePresence>
+        {showLink && (
+          <motion.div
+            className="link-fallback"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <span>Seu navegador bloqueou a cópia automática. Copie o link à mão:</span>
+            <input readOnly value={inviteUrl} onFocus={(e) => e.target.select()} />
+            <button onClick={() => setShowLink(false)}>Fechar</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="room-body">
         <Stage
@@ -172,14 +203,17 @@ function RoomContent({ roomId, onLeave }) {
       <ControlDock
         deafened={deafened}
         onToggleDeafen={toggleDeafen}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={() => {
+          setSettingsOpen(true);
+          setHasOpenedSettings(true);
+        }}
         onLeave={onLeave}
         quality={quality}
         theme={theme}
         onToggleTheme={toggleTheme}
       />
 
-      {settingsOpen && (
+      {hasOpenedSettings && (
         <Suspense fallback={<div className="route-loading">Carregando…</div>}>
           <SettingsModal
             open={settingsOpen}
@@ -191,7 +225,7 @@ function RoomContent({ roomId, onLeave }) {
           />
         </Suspense>
       )}
-    </div>
+    </motion.div>
   );
 }
 

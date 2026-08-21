@@ -12,7 +12,6 @@
   justify-content: center;
   z-index: 100;
   padding: 24px;
-  animation: fadeIn 0.15s ease-out;
 }
 
 .modal {
@@ -22,7 +21,6 @@
   border: 1px solid var(--border-strong);
   border-radius: 16px;
   overflow: hidden;
-  animation: slideUp 0.2s ease-out;
 }
 
 .modal-header {
