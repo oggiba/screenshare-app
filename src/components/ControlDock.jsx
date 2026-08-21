@@ -219,13 +219,21 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
     const next = !screenOn;
     // Em alguns navegadores Chromium no Android (relatado no Brave), o
     // seletor nativo "escolha o que compartilhar" aparece atrás da página
-    // em vez de por cima. Suspeita forte: os cards de participante usam
-    // layout do Framer Motion, que mantém uma camada de composição GPU
-    // ativa mesmo parado — e isso é uma causa conhecida desse tipo de UI
-    // nativa "sumir" atrás de conteúdo com transform. Desligar transform/
-    // will-change do palco bem na janela em que o seletor abriria evita
-    // competir pela mesma camada.
-    if (next) document.body.classList.add("picker-opening");
+    // em vez de por cima. Suspeita forte: elementos com layout do Framer
+    // Motion mantêm uma camada de composição GPU ativa mesmo parados —
+    // causa conhecida desse tipo de UI nativa "sumir" atrás de conteúdo
+    // com transform. Desliga transform/will-change na página inteira
+    // (ver base.css, body.picker-opening) e, mais importante, espera
+    // dois frames depois de marcar "busy" (que já dispara um re-render
+    // dos botões do dock) para o navegador realmente assentar essa
+    // repintura ANTES de pedir o seletor — chamá-lo no mesmo tick do
+    // clique corre o risco de competir com uma repintura em andamento.
+    if (next) {
+      document.body.classList.add("picker-opening");
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      );
+    }
     try {
       // Resolução e bitrate vêm do preset escolhido nas configurações.
       // Manter os dois casados é o que evita imagem borrada.

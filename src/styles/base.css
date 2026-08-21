@@ -102,7 +102,14 @@ button { font-family: var(--font); }
 body.picker-opening .person-card,
 body.picker-opening .screen-tile,
 body.picker-opening .people-grid,
-body.picker-opening .screen-grid {
+body.picker-opening .screen-grid,
+body.picker-opening .room-shell,
+body.picker-opening .avatar,
+body.picker-opening .participant-row,
+body.picker-opening .dock-btn,
+body.picker-opening .topbar-logo {
   transform: none !important;
   will-change: auto !important;
+  animation: none !important;
+  backdrop-filter: none !important;
 }
