@@ -100,7 +100,7 @@
   text-overflow: ellipsis;
 }
 
-.person-mic { font-size: 0.72rem; opacity: 0.75; }
+.person-mic { display: flex; opacity: 0.75; color: var(--danger); }
 
 .stage-callout {
   display: flex;
@@ -113,7 +113,7 @@
   padding: 13px 16px;
 }
 
-.stage-callout span { font-size: 1.3rem; }
+.stage-callout span { display: flex; align-items: center; color: var(--accent); flex-shrink: 0; }
 
 .stage-callout strong {
   display: block;
@@ -227,6 +227,9 @@
 .screen-tile.compact .tile-bar { opacity: 1; }
 
 .tile-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.78rem;
   font-weight: 600;
   color: white;
@@ -236,9 +239,14 @@
   text-overflow: ellipsis;
 }
 
+.tile-name svg { flex-shrink: 0; }
+
 .screen-tile.compact .tile-name { font-size: 0.68rem; }
 
 .tile-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 26px;
   height: 26px;
   flex-shrink: 0;
@@ -247,7 +255,6 @@
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 6px;
   color: white;
-  font-size: 0.85rem;
   cursor: pointer;
   transition: background-color 0.15s ease-out;
 }

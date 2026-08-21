@@ -38,6 +38,8 @@ button { font-family: var(--font); }
   animation: spin 0.8s linear infinite;
 }
 
+.error-icon { color: var(--danger); }
+
 .error-screen h2 { font-size: 1.3rem; }
 .error-screen p { color: var(--text-secondary); max-width: 380px; line-height: 1.6; }
 

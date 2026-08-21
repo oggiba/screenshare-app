@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { TriangleAlert } from "lucide-react";
 
 /**
  * Rede de segurança contra crashes.
@@ -38,7 +39,8 @@ export class ErrorBoundary extends Component {
 
     return (
       <div className="error-screen">
-        <h2>⚠️ Algo deu errado</h2>
+        <TriangleAlert className="error-icon" size={34} strokeWidth={1.75} />
+        <h2>Algo deu errado</h2>
         <p>
           A sala travou por um erro inesperado. Isso não deveria ter
           acontecido — você pode tentar continuar ou recarregar a página.

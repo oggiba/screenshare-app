@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Monitor, MicOff, Maximize } from "lucide-react";
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import "./Stage.css";
@@ -13,24 +15,40 @@ function PersonCard({ participant, label, big }) {
   const isMuted = !micPub || micPub.isMuted;
 
   return (
-    <div className={`person-card ${isSpeaking ? "speaking" : ""} ${big ? "big" : ""}`}>
+    <motion.div
+      layout
+      className={`person-card ${isSpeaking ? "speaking" : ""} ${big ? "big" : ""}`}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.85 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
       <div className="person-avatar">{label.charAt(0).toUpperCase()}</div>
       <div className="person-footer">
         <span className="person-name">{label}</span>
-        {isMuted && <span className="person-mic">🔇</span>}
+        {isMuted && (
+          <span className="person-mic">
+            <MicOff size={11} />
+          </span>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 /* ============================================================
    Tile de tela compartilhada
+   layoutId compartilhado entre grade/foco/filmstrip: o Framer Motion
+   anima a transição de posição/tamanho em vez de trocar abruptamente.
    ============================================================ */
 function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compact }) {
   const isSpeaking = useIsSpeaking(trackRef.participant);
+  const sid = trackRef.publication.trackSid;
 
   return (
-    <div
+    <motion.div
+      layoutId={`tile-${sid}`}
+      layout
       className={`screen-tile ${isFocused ? "focused" : ""} ${compact ? "compact" : ""} ${
         isSpeaking ? "speaking" : ""
       }`}
@@ -40,25 +58,34 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
         onFullscreen(trackRef);
       }}
       title={compact ? `Clique para ver ${label}` : "Duplo clique para tela cheia"}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.92 }}
+      transition={{ layout: { duration: 0.35, ease: "easeInOut" }, default: { duration: 0.2 } }}
+      whileHover={{ scale: compact ? 1.03 : 1.005 }}
     >
       <VideoTrack trackRef={trackRef} className="screen-video" />
 
       <div className="tile-bar">
-        <span className="tile-name">🖥️ {label}</span>
+        <span className="tile-name">
+          <Monitor size={13} /> {label}
+        </span>
         {!compact && (
-          <button
+          <motion.button
             className="tile-action"
             onClick={(e) => {
               e.stopPropagation();
               onFullscreen(trackRef);
             }}
             title="Tela cheia"
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
           >
-            ⛶
-          </button>
+            <Maximize size={13} />
+          </motion.button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -120,19 +147,31 @@ export function Stage({ screenTracks, participants, displayName }) {
     return (
       <main className="stage" ref={stageRef}>
         <div className="people-view">
-          <div className={`people-grid count-${Math.min(participants.length, 6)}`}>
-            {participants.map((p) => (
-              <PersonCard
-                key={p.identity}
-                participant={p}
-                label={displayName(p)}
-                big={participants.length <= 2}
-              />
-            ))}
-          </div>
+          <motion.div
+            layout
+            className={`people-grid count-${Math.min(participants.length, 6)}`}
+          >
+            <AnimatePresence>
+              {participants.map((p) => (
+                <PersonCard
+                  key={p.identity}
+                  participant={p}
+                  label={displayName(p)}
+                  big={participants.length <= 2}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
 
-          <div className="stage-callout">
-            <span>🖥️</span>
+          <motion.div
+            className="stage-callout"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
+          >
+            <span>
+              <Monitor size={20} strokeWidth={1.75} />
+            </span>
             <div>
               <strong>Ninguém está compartilhando a tela</strong>
               <p>
@@ -140,7 +179,7 @@ export function Stage({ screenTracks, participants, displayName }) {
                 participantes podem transmitir ao mesmo tempo.
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
     );
@@ -164,16 +203,18 @@ export function Stage({ screenTracks, participants, displayName }) {
 
         {others.length > 0 && (
           <div className="filmstrip">
-            {others.map((t) => (
-              <ScreenTile
-                key={t.publication.trackSid}
-                trackRef={t}
-                label={displayName(t.participant)}
-                compact
-                onSelect={handleSelect}
-                onFullscreen={goFullscreen}
-              />
-            ))}
+            <AnimatePresence>
+              {others.map((t) => (
+                <ScreenTile
+                  key={t.publication.trackSid}
+                  trackRef={t}
+                  label={displayName(t.participant)}
+                  compact
+                  onSelect={handleSelect}
+                  onFullscreen={goFullscreen}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </main>
@@ -183,17 +224,19 @@ export function Stage({ screenTracks, participants, displayName }) {
   /* --- Grade com todas as telas --- */
   return (
     <main className="stage" ref={stageRef}>
-      <div className={`screen-grid count-${Math.min(screenTracks.length, 4)}`}>
-        {screenTracks.map((t) => (
-          <ScreenTile
-            key={t.publication.trackSid}
-            trackRef={t}
-            label={displayName(t.participant)}
-            onSelect={handleSelect}
-            onFullscreen={goFullscreen}
-          />
-        ))}
-      </div>
+      <motion.div layout className={`screen-grid count-${Math.min(screenTracks.length, 4)}`}>
+        <AnimatePresence>
+          {screenTracks.map((t) => (
+            <ScreenTile
+              key={t.publication.trackSid}
+              trackRef={t}
+              label={displayName(t.participant)}
+              onSelect={handleSelect}
+              onFullscreen={goFullscreen}
+            />
+          ))}
+        </AnimatePresence>
+      </motion.div>
       <p className="stage-tip">
         Clique numa tela para ampliar · duplo clique para tela cheia
       </p>
