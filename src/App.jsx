@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Home } from "./pages/Home";
 import { Room } from "./pages/Room";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import "./App.css";
 
 /** Sanitiza o ID vindo da URL */
 function cleanRoomId(raw) {
