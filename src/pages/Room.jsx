@@ -11,13 +11,17 @@ import { usePersistedVolumes, useNicknames, useKnownNames } from "../hooks/useFr
 import { useStreamQuality } from "../hooks/useStreamQuality";
 import { useTheme } from "../hooks/useTheme";
 import { copyText } from "../utils/clipboard";
+import { Suspense, lazy } from "react";
 import { Stage } from "../components/Stage";
 import { ControlDock } from "../components/ControlDock";
 import { ParticipantList } from "../components/ParticipantList";
-import { SettingsModal } from "../components/SettingsModal";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import "@livekit/components-styles";
 import "./Room.css";
+
+const SettingsModal = lazy(() =>
+  import("../components/SettingsModal").then((m) => ({ default: m.SettingsModal }))
+);
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -175,14 +179,18 @@ function RoomContent({ roomId, onLeave }) {
         onToggleTheme={toggleTheme}
       />
 
-      <SettingsModal
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        quality={quality}
-        isSharing={isLocalSharing}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-      />
+      {settingsOpen && (
+        <Suspense fallback={<div className="route-loading">Carregando…</div>}>
+          <SettingsModal
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            quality={quality}
+            isSharing={isLocalSharing}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
