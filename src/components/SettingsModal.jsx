@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useRoomContext } from "@livekit/components-react";
 import { useAudioDevices } from "../hooks/useDevices";
 import { QUALITY_PRESETS, DEGRADATION_MODES } from "../hooks/useStreamQuality";
+import "./SettingsModal.css";
 
 export function SettingsModal({ open, onClose, quality, isSharing, theme, onToggleTheme }) {
   const room = useRoomContext();
