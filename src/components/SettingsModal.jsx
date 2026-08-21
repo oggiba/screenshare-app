@@ -3,7 +3,7 @@ import { useRoomContext } from "@livekit/components-react";
 import { useAudioDevices } from "../hooks/useDevices";
 import { QUALITY_PRESETS, DEGRADATION_MODES } from "../hooks/useStreamQuality";
 
-export function SettingsModal({ open, onClose, quality, isSharing }) {
+export function SettingsModal({ open, onClose, quality, isSharing, theme, onToggleTheme }) {
   const room = useRoomContext();
   const { mics, speakers, selectedMic, selectedSpeaker, pickMic, pickSpeaker, refresh } =
     useAudioDevices();
@@ -48,6 +48,29 @@ export function SettingsModal({ open, onClose, quality, isSharing }) {
         </div>
 
         <div className="modal-body">
+          {/* Aparência */}
+          <div className="setting-group">
+            <label>Aparência</label>
+            <div className="mode-options">
+              <button
+                className={`mode-option ${theme === "light" ? "selected" : ""}`}
+                onClick={() => theme !== "light" && onToggleTheme()}
+              >
+                <span className="mode-label">☀️ Claro</span>
+                <span className="mode-hint">Fundo claro, tipo papel</span>
+              </button>
+              <button
+                className={`mode-option ${theme === "dark" ? "selected" : ""}`}
+                onClick={() => theme !== "dark" && onToggleTheme()}
+              >
+                <span className="mode-label">🌙 Escuro</span>
+                <span className="mode-hint">Fundo escuro e quente</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="setting-divider" />
+
           {/* Microfone */}
           <div className="setting-group">
             <label>Microfone</label>

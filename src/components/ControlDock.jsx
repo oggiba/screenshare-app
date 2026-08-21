@@ -114,7 +114,7 @@ function QualityPip() {
   );
 }
 
-export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave, quality }) {
+export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave, quality, theme, onToggleTheme }) {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
@@ -214,6 +214,15 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
         >
           {screenOn ? "⏹️" : "🖥️"}
           <span>{screenOn ? "Parar transmissão" : "Compartilhar tela"}</span>
+        </button>
+
+        {/* Tema */}
+        <button
+          className="dock-btn subtle"
+          onClick={onToggleTheme}
+          title={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+        >
+          {theme === "dark" ? "☀️" : "🌙"}
         </button>
 
         {/* Configurações */}

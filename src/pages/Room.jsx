@@ -9,6 +9,7 @@ import { Track } from "livekit-client";
 import { useToken } from "../hooks/useToken";
 import { usePersistedVolumes, useNicknames, useKnownNames } from "../hooks/useFriendPrefs";
 import { useStreamQuality } from "../hooks/useStreamQuality";
+import { useTheme } from "../hooks/useTheme";
 import { copyText } from "../utils/clipboard";
 import { Stage } from "../components/Stage";
 import { ControlDock } from "../components/ControlDock";
@@ -31,6 +32,7 @@ function RoomContent({ roomId, onLeave }) {
   const { nicknames, setNickname, displayName } = useNicknames();
   const { remember, previousName, isKnown } = useKnownNames();
   const quality = useStreamQuality();
+  const { theme, toggleTheme } = useTheme();
 
   // Só assina screenshares — economiza banda e CPU
   const screenTracks = useTracks([Track.Source.ScreenShare], {
@@ -168,6 +170,8 @@ function RoomContent({ roomId, onLeave }) {
         onOpenSettings={() => setSettingsOpen(true)}
         onLeave={onLeave}
         quality={quality}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <SettingsModal
@@ -175,6 +179,8 @@ function RoomContent({ roomId, onLeave }) {
         onClose={() => setSettingsOpen(false)}
         quality={quality}
         isSharing={isLocalSharing}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
     </div>
   );
