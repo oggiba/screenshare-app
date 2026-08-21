@@ -5,6 +5,7 @@ import {
   useConnectionQualityIndicator,
 } from "@livekit/components-react";
 import { ConnectionQuality } from "livekit-client";
+import "./ControlDock.css";
 
 /**
  * Consumo desta sessão.

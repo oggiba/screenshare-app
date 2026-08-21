@@ -1,108 +1,4 @@
 /* =========================================
-   CONTROL DOCK
-   ========================================= */
-
-.control-dock {
-  height: var(--dock-h);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
-}
-
-/* Quality pip */
-.quality-pip {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 11px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-
-.q-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text-muted);
-}
-
-.q-good .q-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
-.q-ok .q-dot { background: var(--warning); }
-.q-bad .q-dot { background: var(--danger); }
-
-.q-text {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-family: "Fira Code", monospace;
-}
-
-.dock-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 auto;
-}
-
-.dock-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 15px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.14s;
-  white-space: nowrap;
-}
-
-.dock-btn:hover:not(:disabled) {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  transform: translateY(-1px);
-}
-
-.dock-btn:disabled { opacity: 0.5; cursor: wait; }
-
-.dock-btn.active {
-  background: rgba(35,197,94,0.12);
-  border-color: rgba(35,197,94,0.35);
-  color: var(--success);
-}
-
-.dock-btn.off {
-  background: rgba(239,68,68,0.12);
-  border-color: rgba(239,68,68,0.35);
-  color: var(--danger);
-}
-
-.dock-btn.screen.sharing {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
-.dock-btn.subtle { padding: 9px 12px; }
-
-.dock-btn.danger {
-  background: rgba(239,68,68,0.12);
-  border-color: rgba(239,68,68,0.3);
-  color: var(--danger);
-}
-
-.dock-btn.danger:hover { background: rgba(239,68,68,0.22); color: var(--danger); }
-
-/* =========================================
    MODAL
    ========================================= */
 
@@ -191,36 +87,6 @@
   color: var(--accent);
 }
 
-
-.usage-pip {
-  padding: 5px 11px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-family: "Fira Code", monospace;
-  white-space: nowrap;
-  cursor: help;
-  flex-shrink: 0;
-}
-
-/* Tag de qualidade na dock */
-.stream-quality-tag {
-  padding: 5px 11px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-family: "Fira Code", monospace;
-  white-space: nowrap;
-  cursor: help;
-  flex-shrink: 0;
-}
-
 /* Seletor de qualidade */
 .quality-options,
 .mode-options {
@@ -302,7 +168,3 @@
    RESPONSIVO
    ========================================= */
 
-@media (max-width: 860px) {
-  .dock-btn span { display: none; }
-  .dock-btn { padding: 10px 13px; }
-}
