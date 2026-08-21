@@ -12,6 +12,8 @@ import {
   Settings as SettingsIcon,
   LogOut,
   ArrowDown,
+  Camera,
+  CameraOff,
 } from "lucide-react";
 import {
   useLocalParticipant,
@@ -138,6 +140,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
 
   const [micOn, setMicOn] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [shareError, setShareError] = useState(null);
 
@@ -154,6 +157,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
     const sync = () => {
       setMicOn(localParticipant.isMicrophoneEnabled);
       setScreenOn(localParticipant.isScreenShareEnabled);
+      setCameraOn(localParticipant.isCameraEnabled);
     };
     sync();
     room.on("localTrackPublished", sync);
@@ -183,6 +187,22 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
     }
   };
 
+  const toggleCamera = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const next = !cameraOn;
+      await localParticipant.setCameraEnabled(next);
+      setCameraOn(next);
+      sounds?.click();
+    } catch (err) {
+      // Permissão negada ou câmera em uso por outro app — não trava a UI
+      if (err?.name !== "NotAllowedError") console.error("Erro na câmera:", err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const toggleScreen = async () => {
     if (busy) return;
 
@@ -196,10 +216,19 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
     }
 
     setBusy(true);
+    const next = !screenOn;
+    // Em alguns navegadores Chromium no Android (relatado no Brave), o
+    // seletor nativo "escolha o que compartilhar" aparece atrás da página
+    // em vez de por cima. Suspeita forte: os cards de participante usam
+    // layout do Framer Motion, que mantém uma camada de composição GPU
+    // ativa mesmo parado — e isso é uma causa conhecida desse tipo de UI
+    // nativa "sumir" atrás de conteúdo com transform. Desligar transform/
+    // will-change do palco bem na janela em que o seletor abriria evita
+    // competir pela mesma camada.
+    if (next) document.body.classList.add("picker-opening");
     try {
       // Resolução e bitrate vêm do preset escolhido nas configurações.
       // Manter os dois casados é o que evita imagem borrada.
-      const next = !screenOn;
       await localParticipant.setScreenShareEnabled(
         next,
         quality.captureOptions(),
@@ -216,6 +245,7 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
       }
     } finally {
       setBusy(false);
+      document.body.classList.remove("picker-opening");
     }
   };
 
@@ -248,6 +278,19 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
             {micOn ? <Mic size={16} /> : <MicOff size={16} />}
           </motion.span>
           <span>{micOn ? "Mic ligado" : "Mic mudo"}</span>
+        </motion.button>
+
+        {/* Câmera */}
+        <motion.button
+          className={`dock-btn ${cameraOn ? "active" : "off"}`}
+          onClick={toggleCamera}
+          disabled={busy}
+          title={cameraOn ? "Desligar câmera" : "Ligar câmera"}
+          whileHover={hover}
+          whileTap={tap}
+        >
+          {cameraOn ? <Camera size={16} /> : <CameraOff size={16} />}
+          <span>{cameraOn ? "Câmera ligada" : "Câmera desligada"}</span>
         </motion.button>
 
         {/* Ensurdecer (mutar tudo) */}

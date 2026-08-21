@@ -54,3 +54,42 @@ export function useAudioDevices() {
 
   return { mics, speakers, selectedMic, selectedSpeaker, pickMic, pickSpeaker, refresh };
 }
+
+/**
+ * Lista e gerencia câmeras — mesmo padrão de useAudioDevices, só que
+ * pra vídeo. Fica em hook separado porque nem toda tela que precisa
+ * de dispositivos de áudio (ex.: SettingsModal antes desta feature)
+ * precisa também enumerar câmera, e vice-versa.
+ */
+export function useCameraDevices() {
+  const [cameras, setCameras] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(
+    () => localStorage.getItem("sr_camera") || "default"
+  );
+
+  const refresh = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setCameras(devices.filter((d) => d.kind === "videoinput"));
+    } catch (err) {
+      console.error("Erro ao listar câmeras:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    navigator.mediaDevices?.addEventListener("devicechange", refresh);
+    return () => navigator.mediaDevices?.removeEventListener("devicechange", refresh);
+  }, [refresh]);
+
+  const pickCamera = useCallback((deviceId) => {
+    setSelectedCamera(deviceId);
+    try {
+      localStorage.setItem("sr_camera", deviceId);
+    } catch {
+      /* preferência vale só nesta sessão */
+    }
+  }, []);
+
+  return { cameras, selectedCamera, pickCamera, refresh };
+}

@@ -82,3 +82,27 @@ button { font-family: var(--font); }
   font-size: 0.85rem;
   animation: fadeIn 0.2s ease-out;
 }
+
+/* =========================================
+   PICKER NATIVO DE COMPARTILHAMENTO DE TELA
+   ========================================= */
+
+/*
+ * Alguns navegadores Chromium no Android (relatado no Brave) renderizam
+ * o seletor nativo "escolha o que compartilhar" ATRÁS da página em vez
+ * de por cima, quando a página mantém elementos com sua própria camada
+ * de composição GPU ativa (transform/will-change) — o Framer Motion
+ * deixa isso ligado o tempo todo em qualquer elemento com a prop
+ * "layout" (cards de participante, tiles de tela), não só durante uma
+ * animação. ControlDock.jsx adiciona esta classe ao <body> só durante a
+ * chamada que abre o seletor (getDisplayMedia) e remove assim que ela
+ * resolve — tempo suficiente pra tirar essas camadas do caminho sem
+ * afetar o app fora dessa janela específica.
+ */
+body.picker-opening .person-card,
+body.picker-opening .screen-tile,
+body.picker-opening .people-grid,
+body.picker-opening .screen-grid {
+  transform: none !important;
+  will-change: auto !important;
+}

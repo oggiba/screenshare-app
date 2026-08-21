@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sun, Moon, TriangleAlert, Volume2, VolumeX } from "lucide-react";
 import { useRoomContext } from "@livekit/components-react";
-import { useAudioDevices } from "../hooks/useDevices";
+import { useAudioDevices, useCameraDevices } from "../hooks/useDevices";
 import { QUALITY_PRESETS, DEGRADATION_MODES } from "../hooks/useStreamQuality";
 import "./SettingsModal.css";
 
@@ -29,10 +29,14 @@ export function SettingsModal({
   const room = useRoomContext();
   const { mics, speakers, selectedMic, selectedSpeaker, pickMic, pickSpeaker, refresh } =
     useAudioDevices();
+  const { cameras, selectedCamera, pickCamera, refresh: refreshCameras } = useCameraDevices();
 
   useEffect(() => {
-    if (open) refresh();
-  }, [open, refresh]);
+    if (open) {
+      refresh();
+      refreshCameras();
+    }
+  }, [open, refresh, refreshCameras]);
 
   // Fecha com ESC
   useEffect(() => {
@@ -56,6 +60,15 @@ export function SettingsModal({
       await room.switchActiveDevice("audiooutput", deviceId);
     } catch (err) {
       console.error("Erro ao trocar saída de áudio:", err);
+    }
+  };
+
+  const handleCameraChange = async (deviceId) => {
+    pickCamera(deviceId);
+    try {
+      await room.switchActiveDevice("videoinput", deviceId);
+    } catch (err) {
+      console.error("Erro ao trocar câmera:", err);
     }
   };
 
@@ -165,6 +178,24 @@ export function SettingsModal({
                     </option>
                   ))}
                 </select>
+              </motion.div>
+
+              {/* Câmera */}
+              <motion.div className="setting-group" variants={rowVariants}>
+                <label>Câmera</label>
+                <select value={selectedCamera} onChange={(e) => handleCameraChange(e.target.value)}>
+                  <option value="default">Padrão do sistema</option>
+                  {cameras.map((d) => (
+                    <option key={d.deviceId} value={d.deviceId}>
+                      {d.label || `Câmera ${d.deviceId.slice(0, 6)}`}
+                    </option>
+                  ))}
+                </select>
+                {cameras.length === 0 && (
+                  <p className="setting-hint">
+                    Ligue a câmera uma vez para o navegador liberar a lista de dispositivos.
+                  </p>
+                )}
               </motion.div>
 
               <div className="setting-divider" />

@@ -13,17 +13,28 @@ function PersonCard({ participant, label, big }) {
   const isSpeaking = useIsSpeaking(participant);
   const micPub = participant.getTrackPublication(Track.Source.Microphone);
   const isMuted = !micPub || micPub.isMuted;
+  const camPub = participant.getTrackPublication(Track.Source.Camera);
+  const hasCamera = Boolean(camPub && !camPub.isMuted && camPub.track);
 
   return (
     <motion.div
       layout
-      className={`person-card ${isSpeaking ? "speaking" : ""} ${big ? "big" : ""}`}
+      className={`person-card ${isSpeaking ? "speaking" : ""} ${big ? "big" : ""} ${
+        hasCamera ? "has-camera" : ""
+      }`}
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
     >
-      <div className="person-avatar">{label.charAt(0).toUpperCase()}</div>
+      {hasCamera ? (
+        <VideoTrack
+          trackRef={{ participant, publication: camPub, source: Track.Source.Camera }}
+          className="person-camera-video"
+        />
+      ) : (
+        <div className="person-avatar">{label.charAt(0).toUpperCase()}</div>
+      )}
       <div className="person-footer">
         <span className="person-name">{label}</span>
         {isMuted && (
