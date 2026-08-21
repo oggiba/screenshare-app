@@ -17,6 +17,7 @@ import { ParticipantList } from "../components/ParticipantList";
 import { SettingsModal } from "../components/SettingsModal";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import "@livekit/components-styles";
+import "./Room.css";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
