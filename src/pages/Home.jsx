@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Flame, Ticket, Lock, TriangleAlert, Check } from "lucide-react";
 import "./Home.css";
 
@@ -60,8 +60,42 @@ export function Home({ onJoin, invitedRoom }) {
     onJoin(room, name.trim());
   };
 
+  // Paralaxe sutil seguindo o cursor: o card inclina levemente (camada de
+  // frente, mais deslocamento) e o glow de fundo desliza um pouco menos
+  // (camada de trás) — a diferença de deslocamento entre as duas é o que
+  // lê como profundidade, não o movimento em si. Só desktop: touch não
+  // dispara mousemove, então no celular fica parado (as brasas subindo já
+  // dão movimento lá).
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const cardRotateX = useSpring(useTransform(mouseY, [-260, 260], [3.5, -3.5]), {
+    stiffness: 160,
+    damping: 22,
+  });
+  const cardRotateY = useSpring(useTransform(mouseX, [-260, 260], [-3.5, 3.5]), {
+    stiffness: 160,
+    damping: 22,
+  });
+  const glowX = useSpring(useTransform(mouseX, [-260, 260], [8, -8]), { stiffness: 80, damping: 20 });
+  const glowY = useSpring(useTransform(mouseY, [-260, 260], [8, -8]), { stiffness: 80, damping: 20 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left - rect.width / 2);
+    mouseY.set(e.clientY - rect.top - rect.height / 2);
+  };
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
   return (
-    <div className="home-container">
+    <div className="home-container" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+      <motion.div className="home-glow-layer" aria-hidden="true" style={{ x: glowX, y: glowY }}>
+        <div className="home-glow-inner" />
+      </motion.div>
+      <div className="home-grain" aria-hidden="true" />
+
       <div className="ember-field" aria-hidden="true">
         <span className="ember" />
         <span className="ember" />
@@ -70,7 +104,13 @@ export function Home({ onJoin, invitedRoom }) {
         <span className="ember" />
       </div>
 
-      <motion.div className="home-card" variants={cardVariants} initial="hidden" animate="show">
+      <motion.div
+        className="home-card"
+        variants={cardVariants}
+        initial="hidden"
+        animate="show"
+        style={{ rotateX: cardRotateX, rotateY: cardRotateY, transformPerspective: 800 }}
+      >
         <motion.div className="home-logo" variants={itemVariants}>
           <motion.span
             className="logo-icon"
