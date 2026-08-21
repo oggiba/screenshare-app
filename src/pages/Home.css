@@ -1,0 +1,190 @@
+/* =========================================
+   HOME
+   ========================================= */
+
+.home-container {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, var(--accent-glow) 0%, transparent 70%),
+    var(--bg-base);
+}
+
+.home-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 38px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.home-logo { text-align: center; }
+
+.logo-icon {
+  font-size: 2.3rem;
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+
+.home-logo h1 {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.home-subtitle {
+  margin-top: 5px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+/* Banner de convite */
+.invite-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(76, 139, 91, 0.1);
+  border: 1px solid rgba(76, 139, 91, 0.3);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+}
+
+.invite-icon { font-size: 1.3rem; }
+
+.invite-banner strong {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.invite-banner code {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--success);
+  letter-spacing: 0.08em;
+}
+
+/* Aviso de segurança */
+.security-notice {
+  display: flex;
+  gap: 11px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius);
+  padding: 13px 15px;
+}
+
+.notice-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+.security-notice strong {
+  font-size: 0.83rem;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.security-notice p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* Form */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.form-group input,
+.setting-group select {
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.94rem;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-group input:focus,
+.setting-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.form-group input::placeholder { color: var(--text-muted); }
+
+/* Warning confirm */
+.warning-confirm {
+  display: flex;
+  gap: 11px;
+  background: rgba(184, 134, 46, 0.1);
+  border: 1px solid rgba(184, 134, 46, 0.3);
+  border-radius: var(--radius);
+  padding: 13px 15px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.warning-confirm strong {
+  font-size: 0.83rem;
+  color: var(--warning);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.warning-confirm p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.primary-btn {
+  padding: 13px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--accent-text);
+  font-size: 0.93rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-out, transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.primary-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.primary-btn.confirm-mode { background: var(--success); }
+.primary-btn.confirm-mode:hover:not(:disabled) { background: #3D7249; }
+
+.home-footer {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .home-card { padding: 28px 22px; }
+}

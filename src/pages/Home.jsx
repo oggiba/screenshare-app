@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "./Home.css";
 
 /** Gera ID curto e legível — evita caracteres ambíguos (0/O, 1/l/I) */
 function generateRoomId() {
