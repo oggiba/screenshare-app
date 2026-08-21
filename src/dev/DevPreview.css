@@ -1,0 +1,57 @@
+.dev-preview {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font);
+}
+
+.dev-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  background: #000;
+  color: #fff;
+  font-size: 0.72rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+.dev-panel strong { color: var(--accent); }
+
+.dev-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dev-panel-row button {
+  padding: 3px 8px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #ddd;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.dev-panel-row button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.dev-stage-frame {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.dev-sidebar {
+  position: static !important;
+  transform: none !important;
+  box-shadow: none !important;
+}

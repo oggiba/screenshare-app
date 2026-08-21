@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
   MicOff,
@@ -132,13 +132,22 @@ function QualityPip() {
   );
 }
 
-export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave, quality, theme, onToggleTheme }) {
+export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave, quality, theme, onToggleTheme, sounds }) {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
   const [micOn, setMicOn] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [shareError, setShareError] = useState(null);
+
+  // getDisplayMedia simplesmente não existe na maioria dos navegadores
+  // mobile (Safari iOS sempre, Chrome Android em muitas versões) — sem
+  // checar isso, o botão "Compartilhar tela" fica clicável mas não faz
+  // nada, e o erro só aparece silencioso no console. Aqui a pessoa recebe
+  // um aviso explicando por quê, em vez de achar que o app travou.
+  const screenShareSupported =
+    typeof navigator !== "undefined" && Boolean(navigator.mediaDevices?.getDisplayMedia);
 
   // Sincroniza estado local com o estado real das tracks
   useEffect(() => {
@@ -163,8 +172,10 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
     if (busy) return;
     setBusy(true);
     try {
-      await localParticipant.setMicrophoneEnabled(!micOn);
-      setMicOn(!micOn);
+      const next = !micOn;
+      await localParticipant.setMicrophoneEnabled(next);
+      setMicOn(next);
+      next ? sounds?.unmute() : sounds?.mute();
     } catch (err) {
       console.error("Erro no microfone:", err);
     } finally {
@@ -174,19 +185,35 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
 
   const toggleScreen = async () => {
     if (busy) return;
+
+    if (!screenOn && !screenShareSupported) {
+      sounds?.click();
+      setShareError(
+        "Este navegador não permite compartilhar tela. Tente o Chrome no computador, ou no Android use o Chrome mais recente."
+      );
+      setTimeout(() => setShareError(null), 5000);
+      return;
+    }
+
     setBusy(true);
     try {
       // Resolução e bitrate vêm do preset escolhido nas configurações.
       // Manter os dois casados é o que evita imagem borrada.
+      const next = !screenOn;
       await localParticipant.setScreenShareEnabled(
-        !screenOn,
+        next,
         quality.captureOptions(),
         quality.publishOptions()
       );
-      setScreenOn(!screenOn);
+      setScreenOn(next);
+      next ? sounds?.shareStart() : sounds?.shareStop();
     } catch (err) {
       // Usuário cancelou o seletor de tela — não é erro real
-      if (err?.name !== "NotAllowedError") console.error("Erro no screenshare:", err);
+      if (err?.name !== "NotAllowedError") {
+        console.error("Erro no screenshare:", err);
+        setShareError("Não foi possível iniciar o compartilhamento de tela.");
+        setTimeout(() => setShareError(null), 5000);
+      }
     } finally {
       setBusy(false);
     }
@@ -226,7 +253,10 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
         {/* Ensurdecer (mutar tudo) */}
         <motion.button
           className={`dock-btn ${deafened ? "off" : "active"}`}
-          onClick={onToggleDeafen}
+          onClick={() => {
+            deafened ? sounds?.unmute() : sounds?.mute();
+            onToggleDeafen();
+          }}
           title={deafened ? "Reativar todo o áudio" : "Mutar todo o áudio da sala"}
           whileHover={hover}
           whileTap={tap}
@@ -236,23 +266,42 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
         </motion.button>
 
         {/* Compartilhar tela */}
-        <motion.button
-          className={`dock-btn screen ${screenOn ? "sharing" : ""}`}
-          onClick={toggleScreen}
-          disabled={busy}
-          title={screenOn ? "Parar de compartilhar" : "Compartilhar tela"}
-          whileHover={hover}
-          whileTap={tap}
-          animate={screenOn ? { boxShadow: "0 0 0 4px var(--accent-glow)" } : { boxShadow: "0 0 0 0px transparent" }}
-        >
-          {screenOn ? <Square size={15} /> : <MonitorUp size={16} />}
-          <span>{screenOn ? "Parar transmissão" : "Compartilhar tela"}</span>
-        </motion.button>
+        <div className="dock-btn-wrap">
+          <motion.button
+            className={`dock-btn screen ${screenOn ? "sharing" : ""}`}
+            onClick={toggleScreen}
+            disabled={busy}
+            title={screenOn ? "Parar de compartilhar" : "Compartilhar tela"}
+            whileHover={hover}
+            whileTap={tap}
+            animate={screenOn ? { boxShadow: "0 0 0 4px var(--accent-glow)" } : { boxShadow: "0 0 0 0px transparent" }}
+          >
+            {screenOn ? <Square size={15} /> : <MonitorUp size={16} />}
+            <span>{screenOn ? "Parar transmissão" : "Compartilhar tela"}</span>
+          </motion.button>
+
+          <AnimatePresence>
+            {shareError && (
+              <motion.div
+                className="dock-toast"
+                initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+              >
+                {shareError}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Tema */}
         <motion.button
           className="dock-btn subtle"
-          onClick={onToggleTheme}
+          onClick={() => {
+            sounds?.click();
+            onToggleTheme();
+          }}
           title={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
           whileHover={hover}
           whileTap={{ ...tap, rotate: 25 }}
@@ -271,7 +320,10 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
         {/* Configurações */}
         <motion.button
           className="dock-btn subtle"
-          onClick={onOpenSettings}
+          onClick={() => {
+            sounds?.click();
+            onOpenSettings();
+          }}
           title="Configurações de áudio"
           whileHover={{ ...hover, rotate: 40 }}
           whileTap={tap}
@@ -282,7 +334,10 @@ export function ControlDock({ deafened, onToggleDeafen, onOpenSettings, onLeave,
         {/* Sair */}
         <motion.button
           className="dock-btn danger"
-          onClick={onLeave}
+          onClick={() => {
+            sounds?.click();
+            onLeave();
+          }}
           title="Sair da sala"
           whileHover={hover}
           whileTap={tap}

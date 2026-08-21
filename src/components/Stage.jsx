@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Monitor, MicOff, Maximize } from "lucide-react";
+import { Monitor, MicOff, Maximize, SunMedium, ChevronsUpDown } from "lucide-react";
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import "./Stage.css";
@@ -45,6 +45,13 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
   const isSpeaking = useIsSpeaking(trackRef.participant);
   const sid = trackRef.publication.trackSid;
 
+  // Ajuste de brilho é só local — nunca sai desta aba nem afeta quem
+  // transmite. Serve pra compensar câmera/tela escura ou clara demais
+  // do lado de quem está assistindo. Reseta se o tile desmontar.
+  const [brightness, setBrightness] = useState(100);
+  const [showBrightness, setShowBrightness] = useState(false);
+  const isAdjusted = brightness !== 100;
+
   return (
     <motion.div
       layoutId={`tile-${sid}`}
@@ -64,27 +71,83 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
       transition={{ layout: { duration: 0.35, ease: "easeInOut" }, default: { duration: 0.2 } }}
       whileHover={{ scale: compact ? 1.03 : 1.005 }}
     >
-      <VideoTrack trackRef={trackRef} className="screen-video" />
+      <VideoTrack
+        trackRef={trackRef}
+        className="screen-video"
+        style={isAdjusted ? { filter: `brightness(${brightness}%)` } : undefined}
+      />
 
       <div className="tile-bar">
         <span className="tile-name">
           <Monitor size={13} /> {label}
         </span>
         {!compact && (
-          <motion.button
-            className="tile-action"
-            onClick={(e) => {
-              e.stopPropagation();
-              onFullscreen(trackRef);
-            }}
-            title="Tela cheia"
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Maximize size={13} />
-          </motion.button>
+          <div className="tile-bar-actions">
+            <motion.button
+              className={`tile-action ${isAdjusted ? "adjusted" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBrightness((v) => !v);
+              }}
+              title="Ajustar brilho (só pra você)"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <SunMedium size={13} />
+            </motion.button>
+
+            <motion.button
+              className="tile-action"
+              onClick={(e) => {
+                e.stopPropagation();
+                onFullscreen(trackRef);
+              }}
+              title="Tela cheia"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Maximize size={13} />
+            </motion.button>
+          </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showBrightness && (
+          <motion.div
+            className="brightness-popover"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, y: 6, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.96 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            <span className="brightness-label">Brilho (só pra você)</span>
+            <input
+              type="range"
+              min="50"
+              max="180"
+              value={brightness}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => setBrightness(Number(e.target.value))}
+            />
+            <div className="brightness-row">
+              <span className="brightness-value">{brightness}%</span>
+              {isAdjusted && (
+                <button
+                  className="brightness-reset"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setBrightness(100);
+                  }}
+                >
+                  Redefinir
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -95,6 +158,28 @@ function ScreenTile({ trackRef, label, isFocused, onSelect, onFullscreen, compac
 export function Stage({ screenTracks, participants, displayName }) {
   const [focusedSid, setFocusedSid] = useState(null);
   const stageRef = useRef(null);
+
+  // Modo tela cheia "limpa": some com a barra do tile depois de alguns
+  // segundos, deixando só a transmissão. Um botão flutuante mínimo
+  // reabre — sem ele, todo o resto (nome, brilho, sair da tela cheia)
+  // ficaria inacessível.
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [controlsHidden, setControlsHidden] = useState(false);
+
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+      setControlsHidden(false);
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isFullscreen || controlsHidden) return;
+    const t = setTimeout(() => setControlsHidden(true), 2500);
+    return () => clearTimeout(t);
+  }, [isFullscreen, controlsHidden]);
 
   const focused = screenTracks.find((t) => t.publication?.trackSid === focusedSid);
 
@@ -190,7 +275,10 @@ export function Stage({ screenTracks, participants, displayName }) {
     const others = screenTracks.filter((t) => t.publication.trackSid !== focusedSid);
 
     return (
-      <main className="stage focused-mode" ref={stageRef}>
+      <main
+        className={`stage focused-mode ${controlsHidden ? "controls-hidden" : ""}`}
+        ref={stageRef}
+      >
         <div className="focus-main">
           <ScreenTile
             trackRef={focused}
@@ -216,6 +304,20 @@ export function Stage({ screenTracks, participants, displayName }) {
               ))}
             </AnimatePresence>
           </div>
+        )}
+
+        {isFullscreen && controlsHidden && (
+          <motion.button
+            className="reveal-controls-btn"
+            onClick={() => setControlsHidden(false)}
+            title="Mostrar controles"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronsUpDown size={16} />
+          </motion.button>
         )}
       </main>
     );
